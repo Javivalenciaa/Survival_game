@@ -82,6 +82,7 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
 .slot .d i{display:block;height:100%;background:var(--moss)}
 #hotbar .slot.sel{border-color:var(--ember);box-shadow:0 0 0 1px var(--ember),0 0 14px rgba(232,135,62,.35)}
 #itemname{font-size:14px;font-weight:600;text-shadow:0 1px 3px #000;min-height:18px}
+#armorInfo{font-size:12px;color:var(--muted);text-shadow:0 1px 3px #000;min-height:0}
 
 #toasts{position:absolute;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(120px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .toast{padding:5px 10px;font-size:14px;font-weight:600;border-radius:4px;background:rgba(10,14,12,.75);border-left:3px solid var(--moss);animation:tin .2s ease-out}
@@ -120,6 +121,16 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
 #slots{display:grid;grid-template-columns:repeat(6,54px);gap:6px}
 #slots .slot{pointer-events:auto;cursor:pointer}
 #slots .slot.hot{border-color:rgba(232,135,62,.35)}
+#panel .col{display:flex;flex-direction:column;gap:16px;min-width:0}
+#cslots{display:grid;grid-template-columns:repeat(6,54px);gap:6px}
+#cslots .slot{pointer-events:auto;cursor:pointer}
+#cslots .slot:hover{border-color:var(--bone)}
+.ch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}
+.ch:last-child{border-bottom:0}
+.ch .pb{grid-column:1 / -1;height:4px;background:rgba(0,0,0,.5);border-radius:2px;overflow:hidden}
+.ch .pb i{display:block;height:100%;background:var(--ember)}
+.ch.done{color:var(--moss)}
+.ch .n{font-variant-numeric:tabular-nums;color:var(--muted)}
 #slots .slot.pick{border-color:var(--ember);background:rgba(232,135,62,.18)}
 #slots .slot:hover{border-color:var(--bone)}
 .tip{font-size:13px;color:var(--muted);line-height:1.4;margin:10px 0 0;max-width:360px}
@@ -166,6 +177,7 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
 .dead .brand{color:var(--blood)}
 @media (max-width:640px){
   #panel .wrap{grid-template-columns:minmax(0,1fr)}
+  #cslots{grid-template-columns:repeat(6,minmax(0,1fr))}
   #slots{grid-template-columns:repeat(6,minmax(0,1fr))}
   #slots .slot{width:auto;aspect-ratio:1;max-width:100%}
   .controls{grid-template-columns:minmax(0,1fr)}
@@ -175,6 +187,24 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
   .slot svg{width:28px;height:28px}
 }
 @media (prefers-reduced-motion:reduce){.toast,.need.low{animation:none}#health i,.need i{transition:none}}
+#banner{position:absolute;left:50%;top:20%;transform:translateX(-50%);text-align:center;pointer-events:none;width:min(680px,calc(100vw - 32px));text-shadow:0 2px 12px rgba(0,0,0,.8)}
+#banner .t{font-family:var(--display);font-weight:800;font-size:clamp(34px,6vw,58px);letter-spacing:.06em;text-transform:uppercase;color:var(--ember);line-height:1}
+#banner.blood .t{color:var(--blood)}
+#banner .s{margin-top:8px;font-size:16px;font-weight:600;color:var(--bone)}
+#bossbar{position:absolute;left:50%;bottom:calc(172px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(460px,calc(100vw - 32px));text-align:center;pointer-events:none}
+#bossbar .n{font-family:var(--display);font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--blood);font-size:15px;text-shadow:0 1px 4px #000}
+#bossbar .b{height:10px;margin-top:4px;background:rgba(0,0,0,.6);border:1px solid rgba(212,73,60,.6);border-radius:3px;overflow:hidden}
+#bossbar .b i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#8e1f17,var(--blood))}
+#report{position:absolute;left:50%;top:18%;transform:translateX(-50%);width:min(400px,calc(100vw - 32px));padding:16px 18px}
+#report .lab{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+#report h3{margin:4px 0 10px;font-family:var(--display);font-size:32px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ember)}
+#report .row{display:flex;justify-content:space-between;gap:12px;font-size:15px;padding:3px 0;border-bottom:1px solid rgba(236,229,212,.08)}
+#report .row b{font-weight:700}
+#report .bad{color:var(--blood)}
+#report .rw{margin-top:10px;font-size:14px;color:var(--moss);font-weight:600}
+#report .x{margin-top:10px;font-size:12px;color:var(--muted)}
+.records{margin-top:12px;font-size:14px;color:var(--ember);font-weight:600}
+.records:empty{display:none}
 </style>
 
 <div id="view"></div>
@@ -189,16 +219,23 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
   <canvas id="compass" width="420" height="34"></canvas>
   <div id="buildbar" class="glass" hidden><div class="title">Modo construcción</div><div class="pieces" id="pieces"></div><div class="keys">Clic: colocar · E: mejorar · X: demoler · B: salir</div></div>
   <div id="toasts"></div>
+  <div id="banner" hidden><div class="t" id="bannerT"></div><div class="s" id="bannerS"></div></div>
+  <div id="bossbar" hidden><div class="n">Señor de la Guerra</div><div class="b"><i id="bossHp"></i></div></div>
+  <div id="report" class="glass" hidden></div>
   <div id="queue" class="glass" hidden></div>
-  <div id="bottom"><div id="itemname"></div><div class="need air" id="airwrap" hidden><span>Aire</span><i id="airbar" style="width:100%"></i></div><div id="health"><i id="hpbar" style="width:100%"></i></div><div id="needs"><div class="need food" id="foodwrap"><span>Hambre</span><i id="foodbar" style="width:100%"></i></div><div class="need drink" id="drinkwrap"><span>Sed</span><i id="drinkbar" style="width:100%"></i></div><div class="need stam" id="stamwrap"><span>Energía</span><i id="stambar" style="width:100%"></i></div></div><div id="hotbar"></div></div>
+  <div id="bottom"><div id="itemname"></div><div id="armorInfo"></div><div class="need air" id="airwrap" hidden><span>Aire</span><i id="airbar" style="width:100%"></i></div><div id="health"><i id="hpbar" style="width:100%"></i></div><div id="needs"><div class="need food" id="foodwrap"><span>Hambre</span><i id="foodbar" style="width:100%"></i></div><div class="need drink" id="drinkwrap"><span>Sed</span><i id="drinkbar" style="width:100%"></i></div><div class="need stam" id="stamwrap"><span>Energía</span><i id="stambar" style="width:100%"></i></div></div><div id="hotbar"></div></div>
 </div>
 
 <div id="map" hidden><div class="mapwrap glass"><canvas id="mapc" width="760" height="760"></canvas><div class="maplegend"><span><i class="lg you"></i>Tú</span><span><i class="lg poi"></i>Lugar descubierto</span><span><i class="lg base"></i>Tu base</span><span><i class="lg ore"></i>Hierro</span><span class="close">M para cerrar</span></div></div></div>
 <div id="panel" hidden>
   <div class="wrap">
-    <section class="glass"><h2>Mochila</h2><div id="slots"></div>
-      <p class="tip">Haz clic en un objeto y después en otra casilla para moverlo. Las 6 casillas de arriba son tu barra rápida (teclas 1–6).</p>
-    </section>
+    <div class="col">
+      <section class="glass"><h2>Mochila</h2><div id="slots"></div>
+        <p class="tip" id="slotTip">Haz clic en un objeto y después en otra casilla para moverlo. Las 6 casillas de arriba son tu barra rápida (teclas 1–6).</p>
+      </section>
+      <section class="glass" id="chestSec" hidden><h2>Arcón</h2><div id="cslots"></div><p class="tip">Haz clic en un objeto para pasarlo entre la mochila y el Arcón. De noche los Errantes intentarán romperlo para robar.</p></section>
+      <section class="glass"><h2>Retos de hoy</h2><div id="challenges"></div></section>
+    </div>
     <section class="glass"><h2>Fabricación</h2><div id="stations"></div><div id="recipes"></div></section>
   </div>
   <button id="closePanel" type="button">Cerrar [Tab]</button>
@@ -207,11 +244,12 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
 <div id="menu" class="overlay">
   <div class="card glass">
     <h1 class="brand">Isla de <span>Hierro</span></h1>
-    <p class="lede">Despiertas en la playa con las manos vacías, con hambre y con sed. Bebe en los lagos de agua dulce, recoge bayas y manzanas, caza ciervos y jabalíes y ásalos en una hoguera. Levanta un refugio antes de que caiga la noche, cuando salen los lobos y los saqueadores, y llega a forjar hierro.</p>
+    <p class="lede">Despiertas en la playa con las manos vacías, con hambre y con sed. Bebe en los lagos de agua dulce, recoge bayas y manzanas, caza ciervos y jabalíes y ásalos en una hoguera. Levanta un refugio antes de que caiga la noche, porque cada noche los Errantes asedian tu base para saquear tu Arcón. Fabrica trampas y torretas, aguanta la luna de sangre y llega a forjar hierro.</p>
     <div class="ctas" id="menuBtns">
       <button class="btn" id="btnPlay" type="button">Jugar</button>
       <button class="btn ghost" id="btnNew" type="button" hidden>Nueva partida</button>
     </div>
+    <p class="records" id="records"></p>
     <div class="qrow"><span>Calidad gráfica</span><div class="qb"><button type="button" class="chipbtn" data-q="baja">Baja</button><button type="button" class="chipbtn" data-q="media">Media</button><button type="button" class="chipbtn" data-q="alta">Alta</button><button type="button" class="chipbtn" data-q="ultra">Ultra</button></div></div>
     <p class="note" id="touchNote" hidden>Este prototipo necesita teclado y ratón. Ábrelo en un ordenador.</p>
     <p class="note" id="libNote" hidden>No se ha podido cargar el motor 3D. Revisa tu conexión y recarga la página.</p>
@@ -224,9 +262,10 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
       <div><b>1–6 / rueda</b>Barra rápida</div>
       <div><b>Tab</b>Mochila y fabricación</div>
       <div><b>B</b>Modo construcción</div>
-      <div><b>E</b>Beber / puertas / mejorar</div>
+      <div><b>E</b>Beber / puertas / usar</div>
       <div><b>C</b>Agacharse / bucear</div>
       <div><b>M</b>Mapa</div>
+      <div><b>Noche</b>Defiende el Arcón</div>
       <div><b>Esc</b>Pausa</div>
     </div>
   </div>
@@ -237,6 +276,7 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
     <h2 class="brand" style="font-size:56px">Pausa</h2>
     <p class="lede" id="pauseTxt">La partida se guarda sola en este navegador.</p>
     <div class="ctas"><button class="btn" id="btnResume" type="button">Continuar</button><button class="btn ghost" id="btnReset" type="button">Nueva partida</button></div>
+    <p class="records" id="records2"></p>
     <div class="qrow"><span>Calidad gráfica</span><div class="qb"><button type="button" class="chipbtn" data-q="baja">Baja</button><button type="button" class="chipbtn" data-q="media">Media</button><button type="button" class="chipbtn" data-q="alta">Alta</button><button type="button" class="chipbtn" data-q="ultra">Ultra</button></div></div>
     <p class="note" id="resetConfirm" hidden>Pulsa otra vez «Nueva partida» para borrar la isla y empezar de cero.</p>
   </div>
@@ -296,20 +336,48 @@ const ITEMS = {
   hide: { name: 'Piel', stack: 60, icon: 'hide' },
   waterskin: { name: 'Odre vacío', stack: 1, icon: 'skin', water: true },
   waterskin_full: { name: 'Odre con agua', stack: 1, icon: 'skinfull', water: true, dur: 5 },
+  charcoal: { name: 'Carbón', stack: 100, icon: 'charcoal' },
+  sulfur: { name: 'Azufre', stack: 150, icon: 'sulfur' },
+  gunpowder: { name: 'Pólvora', stack: 100, icon: 'powder' },
+  fat: { name: 'Grasa', stack: 60, icon: 'fat' },
+  gear: { name: 'Engranaje', stack: 40, icon: 'gear' },
+  seeds: { name: 'Semillas', stack: 50, icon: 'seeds' },
+  hammer: { name: 'Martillo', stack: 1, icon: 'hammer', tint: STONE_TINT, tool: { type: 'hammer', power: 4, mult: 1, cd: .6, range: 3.6, dmg: 10 }, dur: 220 },
+  leather_armor: { name: 'Armadura de cuero', stack: 1, icon: 'armor', tint: '#b48452', armor: .25 },
+  iron_armor: { name: 'Armadura de hierro', stack: 1, icon: 'armor', tint: IRON_TINT, armor: .5 },
+  crossbow: { name: 'Ballesta', stack: 1, icon: 'crossbow', tier: 2, bow: { cd: 1.45, dmg: 80, speed: 72 }, dur: 160 },
+  bomb: { name: 'Bomba de pólvora', stack: 10, icon: 'bomb', throwable: true },
+  chest: { name: 'Arcón', stack: 1, icon: 'chest', deploy: 'chest' },
+  spikes: { name: 'Estacas', stack: 5, icon: 'spikes', deploy: 'spikes' },
+  beartrap: { name: 'Cepo', stack: 5, icon: 'trap', deploy: 'beartrap' },
+  palisade: { name: 'Empalizada', stack: 10, icon: 'palisade', deploy: 'palisade' },
+  ballista: { name: 'Torreta de ballesta', stack: 2, icon: 'turret', deploy: 'ballista' },
+  flamer: { name: 'Lanzallamas', stack: 2, icon: 'flamer', deploy: 'flamer' },
+  mortar: { name: 'Mortero', stack: 2, icon: 'mortar', deploy: 'mortar' },
+  mine: { name: 'Mina', stack: 10, icon: 'mine', deploy: 'mine' },
+  barrel: { name: 'Barril explosivo', stack: 5, icon: 'barrel', deploy: 'barrel' },
+  torch: { name: 'Antorcha', stack: 10, icon: 'torch', deploy: 'torch' },
+  bell: { name: 'Campana de alarma', stack: 1, icon: 'bell', deploy: 'bell' },
+  bed: { name: 'Cama', stack: 1, icon: 'bed', deploy: 'bed' },
+  garden: { name: 'Huerto', stack: 4, icon: 'garden', deploy: 'garden' },
+  collector: { name: 'Recolector de lluvia', stack: 2, icon: 'collector', deploy: 'collector' },
 };
+// planos: estas recetas no se pueden fabricar hasta encontrarlos
+const BLUEPRINTS = { ballista: 'Torreta de ballesta', flamer: 'Lanzallamas', mortar: 'Mortero', mine: 'Mina', barrel: 'Barril explosivo', bomb: 'Bomba de pólvora', crossbow: 'Ballesta' };
 const FISTS = { name: 'Puños', tier: 0, tool: { type: 'hand', power: 8, mult: 1, cd: .45, range: 2.7, dmg: 8 } };
 const NODES = {
   tree: { name: 'Árbol', tools: ['axe'], wrong: .35, minTier: 0, hp: 100, yields: [['wood', 45]], bonus: [['wood', 8]], respawn: 150, radius: .45, better: 'un hacha' },
   bush: { name: 'Arbusto de fibra', tools: ['hand', 'axe', 'pick', 'weapon'], wrong: 1, minTier: 0, hp: 24, yields: [['fiber', 10]], bonus: [], respawn: 90, radius: 0 },
   rock: { name: 'Roca', tools: ['pick'], wrong: .35, minTier: 0, hp: 120, yields: [['stone', 50]], bonus: [['stone', 6]], respawn: 180, radius: 1.0, better: 'un pico' },
   ore: { name: 'Veta de hierro', tools: ['pick'], wrong: 0, minTier: 1, hp: 160, yields: [['ore', 28], ['stone', 12]], bonus: [['ore', 4]], respawn: 300, radius: 1.1, better: 'un pico de piedra o mejor' },
-  berry: { name: 'Arbusto de bayas', tools: ['hand', 'axe', 'pick', 'weapon'], wrong: 1, minTier: 0, hp: 15, yields: [['berries', 7]], bonus: [], respawn: 120, radius: 0 },
+  berry: { name: 'Arbusto de bayas', tools: ['hand', 'axe', 'pick', 'weapon'], wrong: 1, minTier: 0, hp: 15, yields: [['berries', 7]], bonus: [['seeds', 1]], respawn: 120, radius: 0 },
+  sulfur: { name: 'Roca de azufre', tools: ['pick'], wrong: 0, minTier: 1, hp: 140, yields: [['sulfur', 20], ['stone', 8]], bonus: [['sulfur', 3]], respawn: 300, radius: 1.0, better: 'un pico de piedra o mejor' },
   appletree: { name: 'Manzano', tools: ['axe', 'hand'], wrong: .35, minTier: 0, hp: 140, yields: [['wood', 25], ['apple', 6]], bonus: [['apple', 2]], respawn: 220, radius: .45, better: 'un hacha' },
 };
 const ANIMALS = {
-  deer: { name: 'Ciervo', hp: 50, walk: 1.5, run: 8.2, temper: 'flee', fleeR: 15, reach: 0, height: 1.7, radius: .45, gait: 2.2, loot: { meat: 5, hide: 3 } },
-  boar: { name: 'Jabalí', hp: 85, walk: 1.3, run: 6, temper: 'defend', provokeR: 5, dmg: 12, cd: 1.1, reach: 1.7, height: 1, radius: .45, gait: 3, loot: { meat: 6, hide: 2 } },
-  wolf: { name: 'Lobo', hp: 60, walk: 1.8, run: 6.6, temper: 'hunt', aggro: 26, dmg: 9, cd: .95, reach: 1.6, height: 1.1, radius: .4, gait: 2.6, loot: { meat: 3, hide: 3 } },
+  deer: { name: 'Ciervo', hp: 50, walk: 1.5, run: 8.2, temper: 'flee', fleeR: 15, reach: 0, height: 1.7, radius: .45, gait: 2.2, loot: { meat: 5, hide: 3, fat: 2 } },
+  boar: { name: 'Jabalí', hp: 85, walk: 1.3, run: 6, temper: 'defend', provokeR: 5, dmg: 12, cd: 1.1, reach: 1.7, height: 1, radius: .45, gait: 3, loot: { meat: 6, hide: 2, fat: 4 } },
+  wolf: { name: 'Lobo', hp: 60, walk: 1.8, run: 6.6, temper: 'hunt', aggro: 26, dmg: 9, cd: .95, reach: 1.6, height: 1.1, radius: .4, gait: 2.6, loot: { meat: 3, hide: 3, fat: 1 } },
 };
 const TIER_NAMES = ['Primitivo', 'Piedra', 'Hierro'];
 const STATION_NAMES = { workbench: 'Banco de trabajo', furnace: 'Horno', campfire: 'Hoguera' };
@@ -322,19 +390,43 @@ const RECIPES = [
   { id: 'cooked_meat', out: 'cooked_meat', n: 1, cost: { raw_meat: 1, wood: 1 }, time: 2, tier: 0, station: 'campfire' },
   { id: 'waterskin', out: 'waterskin', n: 1, cost: { hide: 4, fiber: 8 }, time: 3, tier: 0 },
   { id: 'workbench', out: 'workbench', n: 1, cost: { wood: 80, stone: 30 }, time: 4, tier: 0 },
+  { id: 'hammer', out: 'hammer', n: 1, cost: { wood: 15, stone: 6 }, time: 2, tier: 0 },
+  { id: 'chest', out: 'chest', n: 1, cost: { wood: 70, stone: 20 }, time: 4, tier: 0 },
+  { id: 'torch', out: 'torch', n: 2, cost: { wood: 4, fiber: 3 }, time: 1, tier: 0 },
+  { id: 'spikes', out: 'spikes', n: 1, cost: { wood: 30 }, time: 3, tier: 0 },
+  { id: 'seeds', out: 'seeds', n: 2, cost: { berries: 6 }, time: 1, tier: 0 },
+  { id: 'garden', out: 'garden', n: 1, cost: { wood: 30, stone: 10 }, time: 3, tier: 0 },
+  { id: 'bed', out: 'bed', n: 1, cost: { wood: 40, fiber: 30, hide: 6 }, time: 4, tier: 0 },
+  { id: 'leather_armor', out: 'leather_armor', n: 1, cost: { hide: 12, fiber: 10 }, time: 5, tier: 0 },
   { id: 'bow', out: 'bow', n: 1, cost: { wood: 40, fiber: 20 }, time: 4, tier: 1, station: 'workbench' },
   { id: 'arrow', out: 'arrow', n: 6, cost: { wood: 6, stone: 4, fiber: 3 }, time: 2, tier: 1, station: 'workbench' },
   { id: 'furnace', out: 'furnace', n: 1, cost: { stone: 90, wood: 30 }, time: 5, tier: 1, station: 'workbench' },
+  { id: 'palisade', out: 'palisade', n: 1, cost: { wood: 40 }, time: 3, tier: 1, station: 'workbench' },
+  { id: 'beartrap', out: 'beartrap', n: 1, cost: { stone: 25, wood: 10, fiber: 8 }, time: 3, tier: 1, station: 'workbench' },
+  { id: 'collector', out: 'collector', n: 1, cost: { wood: 30, hide: 4 }, time: 3, tier: 1, station: 'workbench' },
   { id: 'ingot', out: 'ingot', n: 1, cost: { ore: 2, wood: 1 }, time: 1.5, tier: 2, station: 'furnace' },
   { id: 'iron_axe', out: 'iron_axe', n: 1, cost: { ingot: 5, wood: 20 }, time: 5, tier: 2, station: 'workbench' },
   { id: 'iron_pick', out: 'iron_pick', n: 1, cost: { ingot: 6, wood: 20 }, time: 5, tier: 2, station: 'workbench' },
   { id: 'iron_sword', out: 'iron_sword', n: 1, cost: { ingot: 8, wood: 10, fiber: 5 }, time: 6, tier: 2, station: 'workbench' },
+  { id: 'charcoal', out: 'charcoal', n: 2, cost: { wood: 3 }, time: 1.5, tier: 2, station: 'furnace' },
+  { id: 'gunpowder', out: 'gunpowder', n: 2, cost: { charcoal: 2, sulfur: 2 }, time: 2, tier: 2, station: 'workbench' },
+  { id: 'gear', out: 'gear', n: 1, cost: { ingot: 4 }, time: 4, tier: 2, station: 'workbench' },
+  { id: 'iron_armor', out: 'iron_armor', n: 1, cost: { ingot: 14, hide: 4 }, time: 8, tier: 2, station: 'workbench' },
+  { id: 'bell', out: 'bell', n: 1, cost: { ingot: 3, wood: 10 }, time: 3, tier: 2, station: 'workbench' },
+  { id: 'crossbow', out: 'crossbow', n: 1, cost: { ingot: 6, wood: 25, fiber: 10, gear: 1 }, time: 6, tier: 2, station: 'workbench', bp: 'crossbow' },
+  { id: 'bomb', out: 'bomb', n: 1, cost: { gunpowder: 2, fiber: 2, hide: 1 }, time: 2, tier: 2, station: 'workbench', bp: 'bomb' },
+  { id: 'mine', out: 'mine', n: 1, cost: { gunpowder: 3, ingot: 1 }, time: 3, tier: 2, station: 'workbench', bp: 'mine' },
+  { id: 'barrel', out: 'barrel', n: 1, cost: { gunpowder: 4, wood: 10 }, time: 3, tier: 2, station: 'workbench', bp: 'barrel' },
+  { id: 'ballista', out: 'ballista', n: 1, cost: { ingot: 10, wood: 40, gear: 2 }, time: 8, tier: 2, station: 'workbench', bp: 'ballista' },
+  { id: 'flamer', out: 'flamer', n: 1, cost: { ingot: 14, gear: 3, fat: 6 }, time: 8, tier: 2, station: 'workbench', bp: 'flamer' },
+  { id: 'mortar', out: 'mortar', n: 1, cost: { ingot: 18, gear: 4, stone: 40 }, time: 10, tier: 2, station: 'workbench', bp: 'mortar' },
 ];
+const MULTI = new Set(['ingot', 'arrow', 'bandage', 'cooked_meat', 'charcoal', 'gunpowder', 'torch', 'spikes', 'palisade', 'bomb', 'mine', 'seeds']);
 const BTIERS = [
-  { name: 'Paja', mult: .25, cost: { wood: 8 }, res: 0 },
-  { name: 'Madera', mult: 1, cost: { wood: 40 }, res: .25 },
-  { name: 'Piedra', mult: 2.5, cost: { stone: 60 }, res: .6 },
-  { name: 'Metal', mult: 5, cost: { ingot: 6 }, res: .85 },
+  { name: 'Paja', mult: .25, cost: { wood: 8 }, res: 0, expRes: 0, fire: 2 },
+  { name: 'Madera', mult: 1, cost: { wood: 40 }, res: .25, expRes: 0, fire: 1 },
+  { name: 'Piedra', mult: 2.5, cost: { stone: 60 }, res: .6, expRes: .35, fire: 0 },
+  { name: 'Metal', mult: 5, cost: { ingot: 6 }, res: .85, expRes: .6, fire: 0 },
 ];
 const PIECES = {
   foundation: { name: 'Cimiento', hp: 400, units: 1.5 },
@@ -348,6 +440,30 @@ const costText = (c) => Object.keys(c).map((k) => c[k] + ' ' + ITEMS[k].name.toL
 const maxDur = (id) => (ITEMS[id] && ITEMS[id].dur) || 0;
 
 const ICON = {
+  charcoal: '<svg viewBox="0 0 24 24"><path d="M4 16l3-7 6-3 6 3 1 7-5 4H8z" fill="#2b2b2b"/><path d="M7 9l6-3 6 3-6 2z" fill="#4a4a4a"/></svg>',
+  sulfur: '<svg viewBox="0 0 24 24"><path d="M3 17l3-8 6-4 6 3 3 7-4 4H6z" fill="#8a8243"/><path d="M8 12l3-3 3 2-2 4zM14 15l2-2 2 2-2 2z" fill="#f0d63a"/></svg>',
+  powder: '<svg viewBox="0 0 24 24"><path d="M5 20l2-9h10l2 9z" fill="#3a3a3a"/><path d="M8 11c0-3 2-5 4-5s4 2 4 5z" fill="#6e4421"/><circle cx="12" cy="16" r="1.4" fill="#d4493c"/></svg>',
+  fat: '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="7" ry="5" fill="#ece0b8"/><ellipse cx="10" cy="12" rx="3" ry="1.6" fill="#fff6d8"/></svg>',
+  gear: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="3 2.1"/><circle cx="12" cy="12" r="4.5" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="#141b18"/></svg>',
+  seeds: '<svg viewBox="0 0 24 24"><ellipse cx="8" cy="13" rx="2" ry="3" fill="#b08a4a" transform="rotate(-20 8 13)"/><ellipse cx="14" cy="10" rx="2" ry="3" fill="#c49a58" transform="rotate(15 14 10)"/><ellipse cx="15" cy="17" rx="2" ry="3" fill="#9a7638"/></svg>',
+  hammer: '<svg viewBox="0 0 24 24"><path d="M7 21L15 9" stroke="#8b5a2e" stroke-width="2.4" stroke-linecap="round"/><path d="M11 4h8l1 5-7 1z" fill="currentColor"/></svg>',
+  armor: '<svg viewBox="0 0 24 24"><path d="M6 4l3 2h6l3-2 3 4-3 3v9H6v-9L3 8z" fill="currentColor"/><path d="M9 6c1 2 5 2 6 0" stroke="#141b18" stroke-width="1.2" fill="none"/></svg>',
+  crossbow: '<svg viewBox="0 0 24 24"><path d="M12 4v17" stroke="#6e4421" stroke-width="2.4"/><path d="M4 9c4-3 12-3 16 0" stroke="#c4cacd" stroke-width="2" fill="none"/><path d="M4 9l8 4 8-4" stroke="#ece5d4" stroke-width="1"/></svg>',
+  bomb: '<svg viewBox="0 0 24 24"><circle cx="11" cy="14" r="6.5" fill="#2e2e2e"/><path d="M14 8c1-3 3-4 5-3" stroke="#a6a392" stroke-width="1.6" fill="none"/><circle cx="19" cy="5" r="1.6" fill="#e8873e"/></svg>',
+  chest: '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="11" rx="1" fill="#8d5e34"/><path d="M3 9c0-4 18-4 18 0z" fill="#a8743f"/><rect x="3" y="11" width="18" height="2" fill="#5a3a1e"/><rect x="10.5" y="11" width="3" height="4" fill="#d4b062"/></svg>',
+  spikes: '<svg viewBox="0 0 24 24"><rect x="2" y="17" width="20" height="3" fill="#6e4421"/><path d="M4 17l2-11 2 11zM10 17l2-12 2 12zM16 17l2-11 2 11z" fill="#c49a58"/></svg>',
+  trap: '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="9" ry="3" fill="#5f676b"/><path d="M4 15c2-6 14-6 16 0" stroke="#b9c0c3" stroke-width="1.8" fill="none" stroke-dasharray="1.6 1"/></svg>',
+  palisade: '<svg viewBox="0 0 24 24"><path d="M3 21V8l2-3 2 3v13zM9 21V7l2-3 2 3v14zM15 21V8l2-3 2 3v13z" fill="#9c6a3a"/><rect x="2" y="13" width="20" height="2" fill="#5a3a1e"/></svg>',
+  turret: '<svg viewBox="0 0 24 24"><path d="M6 21l3-8h6l3 8" stroke="#6e4421" stroke-width="2" fill="none"/><rect x="7" y="8" width="10" height="5" fill="#8f979b"/><path d="M3 9c3-2 15-2 18 0" stroke="#6e4421" stroke-width="2" fill="none"/><path d="M12 10h9" stroke="#ece5d4" stroke-width="1.4"/></svg>',
+  flamer: '<svg viewBox="0 0 24 24"><rect x="4" y="9" width="7" height="11" rx="3" fill="#b8372c"/><path d="M11 13h6" stroke="#8f979b" stroke-width="3"/><path d="M17 13c2-3 4-2 4 0s-2 3-4 0z" fill="#e8873e"/></svg>',
+  mortar: '<svg viewBox="0 0 24 24"><rect x="5" y="17" width="14" height="4" fill="#5e5f5b"/><path d="M8 17l6-11 4 2-5 9z" fill="#3c4245"/></svg>',
+  mine: '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="15" rx="8" ry="4" fill="#3c4245"/><rect x="10" y="9" width="4" height="4" fill="#5f676b"/><circle cx="12" cy="9" r="1.4" fill="#d4493c"/></svg>',
+  barrel: '<svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="3" fill="#b8372c"/><rect x="6" y="7" width="12" height="2" fill="#5a1f1a"/><rect x="6" y="15" width="12" height="2" fill="#5a1f1a"/><path d="M10 11h4l-2 3z" fill="#ffd27a"/></svg>',
+  torch: '<svg viewBox="0 0 24 24"><path d="M12 22V10" stroke="#6e4421" stroke-width="2.4"/><path d="M12 2c3 3 4 5 4 7a4 4 0 01-8 0c0-2 1-4 4-7z" fill="#e8873e"/></svg>',
+  bell: '<svg viewBox="0 0 24 24"><path d="M6 17c1-2 1-7 6-9 5 2 5 7 6 9z" fill="#d4b062"/><rect x="5" y="17" width="14" height="2" fill="#a8843a"/><circle cx="12" cy="20.5" r="1.5" fill="#a8843a"/></svg>',
+  bed: '<svg viewBox="0 0 24 24"><rect x="2" y="12" width="20" height="5" fill="#8d5e34"/><rect x="3" y="9" width="6" height="4" rx="1" fill="#ece5d4"/><rect x="9" y="10" width="12" height="3" fill="#b8372c"/><path d="M3 17v3M21 17v3" stroke="#5a3a1e" stroke-width="2"/></svg>',
+  garden: '<svg viewBox="0 0 24 24"><rect x="2" y="15" width="20" height="6" fill="#5a3a1e"/><path d="M7 15c0-4 2-6 4-7M12 15c0-3 2-6 5-6" stroke="#5d8a37" stroke-width="2" fill="none"/><circle cx="17" cy="9" r="2" fill="#b3243a"/></svg>',
+  collector: '<svg viewBox="0 0 24 24"><path d="M3 5h18l-6 6v3H9v-3z" fill="#a0764a"/><rect x="7" y="14" width="10" height="7" rx="2" fill="#8b5a2e"/><rect x="8" y="16" width="8" height="3" fill="#4fb3d9"/></svg>',
   wood: '<svg viewBox="0 0 24 24"><rect x="2" y="8" width="17" height="8" rx="4" fill="#8b5a2e"/><rect x="2" y="10" width="15" height="1.2" fill="#6e4421"/><ellipse cx="19" cy="12" rx="3" ry="4" fill="#d8ac72"/><ellipse cx="19" cy="12" rx="1.4" ry="2" fill="#b07c45"/></svg>',
   stone: '<svg viewBox="0 0 24 24"><path d="M4 18l2-8 5-4 6 2 3 6-3 4H7z" fill="#8e908b"/><path d="M11 6l6 2 3 6-6-3z" fill="#bfc1bc"/></svg>',
   fiber: '<svg viewBox="0 0 24 24"><path d="M6 20C7 13 9 8 13 3M10 20c0-6 2-10 7-14M14 20c0-5 2-8 5-10" stroke="#a6c46a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
@@ -371,6 +487,7 @@ const ICON = {
   campfire: '<svg viewBox="0 0 24 24"><path d="M4 20.5l16-4M4 16.5l16 4" stroke="#6e4421" stroke-width="2.4" stroke-linecap="round"/><path d="M12 3.5c3 4 5 6 5 9a5 5 0 01-10 0c0-2 1-4 2-5 0 2 1 3 2 3 0-3 0-5 1-7z" fill="#e8873e"/><path d="M12 9.5c1.5 2 2.5 3 2.5 4.5a2.5 2.5 0 01-5 0c0-1.5 1-2.5 2.5-4.5z" fill="#ffd27a"/></svg>',
   furnace: '<svg viewBox="0 0 24 24"><path d="M4 21V10l8-6 8 6v11z" fill="#7d7f7b"/><path d="M16 6V2.5h2.5V8" fill="#6a6c68"/><path d="M8.5 21v-4.5a3.5 3.5 0 017 0V21z" fill="#e8873e"/></svg>',
 };
+const BP_ICON = '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" fill="#2c5c8a"/><path d="M6 15l4-6 3 4 2-2 3 4" stroke="#cfe6ff" stroke-width="1.4" fill="none"/></svg>';
 function iconFor(id) { const it = ITEMS[id]; return `<span style="color:${it.tint || '#ccc'};display:contents">${ICON[it.icon]}</span>`; }
 
 // ---------------------------------------------------------------- inventario (port del Inventory.cs)
@@ -384,7 +501,7 @@ class Inventory {
       const m = Math.min(it.stack - s.n, rem); if (m <= 0) continue; s.n += m; rem -= m;
     }
     // herramientas y objetos usables van primero a la barra rápida; los recursos, a la mochila
-    const usable = it.tool || it.bow || it.deploy || it.heal || it.food || it.water, n = this.slots.length;
+    const usable = it.tool || it.bow || it.deploy || it.heal || it.food || it.water || it.armor || it.throwable, n = this.slots.length;
     for (let k = 0; k < n && rem > 0; k++) {
       const i = usable ? k : (k + 6) % n;
       if (this.slots[i]) continue;
@@ -969,7 +1086,7 @@ function nodesNear(x, z, r, out) {
 const tmpNear = [];
 {
   const rng = mulberry32(1337);
-  const plan = [['ore', 95], ['rock', 330], ['tree', 760], ['appletree', 100], ['bush', 340], ['berry', 160]];
+  const plan = [['ore', 95], ['sulfur', 70], ['rock', 330], ['tree', 760], ['appletree', 100], ['bush', 340], ['berry', 160]];
   const ok = (type, x, z) => {
     const h = terrainH(x, z), s = slopeAt(x, z);
     if (Math.hypot(x - SPAWN.x, z - SPAWN.z) < 5 || nearLake(x, z, 1.15) || POIS.some((q) => Math.hypot(x - q.x, z - q.z) < q.r + 3)) return false;
@@ -979,6 +1096,7 @@ const tmpNear = [];
     if (type === 'bush') return h > 1.3 && h < 15 && s < .5;
     if (type === 'rock') return h > .9 && h < 26 && s < .9;
     if (type === 'ore') return h > 13 && s < 1.1;
+    if (type === 'sulfur') return h > 11 && s < 1.1;
   };
   const free = (x, z, d) => { nodesNear(x, z, d, tmpNear); for (const n of tmpNear) if ((n.x - x) ** 2 + (n.z - z) ** 2 < d * d) return false; return true; };
   const addNode = (type, x, z) => { const n = { type, def: NODES[type], x, z, y: terrainH(x, z), rot: rng() * 6.283, s: .85 + rng() * .4, variant: (() => { const v = rng(); return v < .45 ? 0 : v < .78 ? 1 : 2; })(), hp: NODES[type].hp, acc: NODES[type].yields.map(() => 0), depleted: false, respawnAt: 0, shake: 0, parts: [] }; nodes.push(n); gridAdd(n); return n; };
@@ -986,7 +1104,7 @@ const tmpNear = [];
     let placed = 0;
     for (let t = 0; t < count * 40 && placed < count; t++) {
       let x, z;
-      if (type === 'ore') { const M2 = rng() < .3 ? MOUNT2 : MOUNT, a = rng() * 6.283, r = Math.sqrt(rng()) * (M2 === MOUNT ? 85 : 60); x = M2.x + Math.cos(a) * r; z = M2.z + Math.sin(a) * r; }
+      if (type === 'ore' || type === 'sulfur') { const M2 = (type === 'sulfur' ? rng() < .6 : rng() < .3) ? MOUNT2 : MOUNT, a = rng() * 6.283, r = Math.sqrt(rng()) * (M2 === MOUNT ? 85 : 60); x = M2.x + Math.cos(a) * r; z = M2.z + Math.sin(a) * r; }
       else { x = (rng() * 2 - 1) * HALF * .92; z = (rng() * 2 - 1) * HALF * .92; }
       if (!ok(type, x, z) || !free(x, z, type === 'bush' || type === 'berry' ? 2.2 : 3.2)) continue;
       addNode(type, x, z); placed++;
@@ -1110,6 +1228,8 @@ const M = {
   rock: makeInst(G.rock, '#b8b6b0', countOf('rock'), { flatShading: false, roughness: .85 }),
   ore: makeInst(G.ore, '#8a7e74', countOf('ore'), { flatShading: false, roughness: .8 }),
   vein: makeInst(G.vein, '#d77a35', countOf('ore') * 3, { emissive: lin('#7a2e08'), emissiveIntensity: .6, roughness: .5, metalness: .3 }),
+  sulfur: makeInst(G.ore, '#a89a5c', countOf('sulfur'), { flatShading: false, roughness: .85 }),
+  sulfurVein: makeInst(G.vein, '#f2d83a', countOf('sulfur') * 3, { emissive: lin('#6a5a08'), emissiveIntensity: .5, roughness: .6 }),
   berryBush: makeInst(G.bush, '#46702f', countOf('berry'), LEAF),
   berry: makeInst(G.berry, '#b3243a', countOf('berry') * 6, { roughness: .4, flatShading: false }),
   appleLeaf: makeInst(G.oak, '#5e9a3c', countOf('appletree'), LEAF),
@@ -1119,6 +1239,7 @@ for (const k of ['pineA', 'oak', 'birchLeaf', 'appleLeaf']) addWind(M[k].materia
 for (const k of ['bush', 'berryBush']) addWind(M[k].material, .05, .15);
 addTriplanar(M.rock.material, texRock, .45, 1.9);
 addTriplanar(M.ore.material, texRock, .45, 1.2);
+addTriplanar(M.sulfur.material, texRock, .45, 1.4);
 const dummy = new THREE.Object3D(), tmpM = new THREE.Matrix4(), tmpC = new THREE.Color();
 const VEIN_OFF = [[.55, .95, .2], [-.45, .75, .55], [.1, .65, -.7]];
 const BERRY_OFF = [[.55, .55, .3], [-.5, .6, .35], [.1, .78, -.5], [-.35, .42, -.6], [.65, .35, -.25], [0, .9, .1]];
@@ -1135,6 +1256,7 @@ for (const n of nodes) {
   else if (n.type === 'bush') addPart(n, M.bush, .12);
   else if (n.type === 'rock') addPart(n, M.rock, .14);
   else if (n.type === 'ore') { addPart(n, M.ore, .08); for (const o of VEIN_OFF) addPart(n, M.vein, .1, o); }
+  else if (n.type === 'sulfur') { addPart(n, M.sulfur, .08); for (const o of VEIN_OFF) addPart(n, M.sulfurVein, .1, o); }
   else if (n.type === 'berry') { addPart(n, M.berryBush, .1); for (const o of BERRY_OFF) addPart(n, M.berry, .08, o); }
   else if (n.type === 'appletree') { addPart(n, M.trunk, .08); addPart(n, M.appleLeaf, .1); for (const o of APPLE_OFF) addPart(n, M.apple, .08, o); }
   writeNode(n);
@@ -1192,7 +1314,7 @@ function harvest(n, tool, tier) {
       // cae hacia el lado contrario al jugador
       const dx = n.x - player.pos.x, dz = n.z - player.pos.z, d = Math.hypot(dx, dz) || 1;
       n.fall = { axis: new THREE.Vector3(dz / d, 0, -dx / d), ang: 0, vel: .3, rest: 0, landed: false }; fallers.add(n); sfx.creak();
-    } else if (n.type === 'rock' || n.type === 'ore') burst(new THREE.Vector3(n.x, n.y + .6, n.z), n.type === 'ore' ? 'ore' : 'stone', 22, 1.8);
+    } else if (n.type === 'rock' || n.type === 'ore' || n.type === 'sulfur') burst(new THREE.Vector3(n.x, n.y + .6, n.z), n.type === 'ore' ? 'ore' : 'stone', 22, 1.8);
   }
   n.shake = .3; shaking.add(n); writeNode(n);
   return { st: 'ok', loot, eff: ev.eff };
@@ -1291,7 +1413,7 @@ let colliders = [];
 function rebuildColliders() {
   colliders = [];
   for (const p of pieces) { for (const b of p.boxes) colliders.push(Object.assign({ piece: p }, b)); if (p.doorBox && !p.open) colliders.push(Object.assign({ piece: p }, p.doorBox)); }
-  for (const d of deployables) colliders.push(Object.assign({ dep: d }, d.box));
+  for (const d of deployables) if (!DEP_DEFS[d.t].noCollide) colliders.push(Object.assign({ dep: d }, d.box));
   for (const b of staticBoxes) colliders.push(b);
 }
 
@@ -1299,9 +1421,87 @@ function rebuildColliders() {
 const deployables = [];
 const depRoot = new THREE.Group(); scene.add(depRoot);
 const stdMat = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: lin(c), roughness: .85 }, o || {}));
-const DEP_MATS = { wood: stdMat('#9c6a3a'), dark: stdMat('#6e4421'), stone: stdMat('#7c7d78', { flatShading: true }), stone2: stdMat('#5e5f5b', { flatShading: true }), fire: stdMat('#ff9b47', { emissive: lin('#ff6a10'), emissiveIntensity: 1.6 }), metal: stdMat('#b9c0c3', { metalness: .6, roughness: .4 }) };
+const DEP_DEFS = {
+  workbench: { half: [.9, .45], h: 1.1, hp: 300 }, furnace: { half: [.65, .65], h: 2.4, hp: 400 }, campfire: { half: [.6, .6], h: .3, hp: 150, light: 1, lightY: .8 },
+  chest: { half: [.72, .45], h: .95, hp: 700 }, spikes: { half: [.95, .45], h: .5, hp: 420, noCollide: true }, beartrap: { half: [.45, .45], h: .15, hp: 120, noCollide: true },
+  palisade: { half: [1.5, .3], h: 2.6, hp: 380 }, ballista: { half: [.55, .55], h: 1.5, hp: 260, turret: { range: 28, cd: 1.5, ammo: 'arrow', cap: 60 } },
+  flamer: { half: [.5, .5], h: 1.4, hp: 240, turret: { range: 9.5, cd: .25, ammo: 'fat', cap: 20 } }, mortar: { half: [.6, .6], h: 1.1, hp: 280, turret: { range: 46, min: 12, cd: 4.5, ammo: 'gunpowder', cap: 20 } },
+  mine: { half: [.35, .35], h: .12, hp: 20, noCollide: true }, barrel: { half: [.4, .4], h: 1.1, hp: 30 }, torch: { half: [.15, .15], h: 1.9, hp: 80, light: 1, lightY: 2.0, noCollide: true },
+  bell: { half: [.55, .25], h: 2.2, hp: 150 }, bed: { half: [1.1, .52], h: .6, hp: 180 }, garden: { half: [1, 1], h: .3, hp: 150, noCollide: true }, collector: { half: [.55, .55], h: 1.35, hp: 140 },
+};
+const DEP_MATS = { gold: stdMat('#d4b062', { metalness: .7, roughness: .35 }), red: stdMat('#b8372c'), black: stdMat('#2b2f33', { metalness: .5, roughness: .5 }), soil: stdMat('#3d2a1a'), leaf: stdMat('#4f7d33'), water: stdMat('#3d8aa6', { roughness: .1 }), cloth: stdMat('#d6cfbd'), blanket: stdMat('#a83a2e'), hidem: stdMat('#a0764a', { side: THREE.DoubleSide }), wood: stdMat('#9c6a3a'), dark: stdMat('#6e4421'), stone: stdMat('#7c7d78', { flatShading: true }), stone2: stdMat('#5e5f5b', { flatShading: true }), fire: stdMat('#ff9b47', { emissive: lin('#ff6a10'), emissiveIntensity: 1.6 }), metal: stdMat('#b9c0c3', { metalness: .6, roughness: .4 }) };
 function depModel(type) {
-  const g = new THREE.Group(); const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+  const g = new THREE.Group(); const add = (geo, mat, x, y, z, parent) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; (parent || g).add(m); return m; };
+  const B = (w, h, d) => new THREE.BoxGeometry(w, h, d), C = (a, b, h, n) => new THREE.CylinderGeometry(a, b, h, n || 10);
+  const def = DEP_DEFS[type] || { half: [.6, .6], h: 1 }, out = { g, half: def.half, h: def.h };
+  if (type === 'chest') {
+    add(B(1.4, .7, .85), DEP_MATS.wood, 0, .35, 0); add(B(1.44, .24, .89), DEP_MATS.dark, 0, .8, 0);
+    for (const x of [-.55, .55]) add(B(.08, .94, .91), DEP_MATS.metal, x, .47, 0);
+    add(B(.22, .26, .06), DEP_MATS.gold, 0, .6, .45); return out;
+  }
+  if (type === 'spikes') {
+    const log = add(C(.12, .12, 1.9, 8), DEP_MATS.dark, 0, .14, -.2); log.rotation.z = Math.PI / 2;
+    for (let k = 0; k < 6; k++) { const st = add(new THREE.ConeGeometry(.07, 1.15, 6), DEP_MATS.wood, -.8 + k * .32, .38, .05); st.rotation.x = .85; }
+    return out;
+  }
+  if (type === 'beartrap') {
+    add(C(.42, .44, .05, 16), DEP_MATS.black, 0, .03, 0);
+    const jaws = [];
+    for (const sd of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(0, .06, 0); g.add(pv); const j = add(new THREE.TorusGeometry(.36, .03, 5, 14, Math.PI), DEP_MATS.metal, 0, 0, 0, pv); j.rotation.y = sd > 0 ? 0 : Math.PI; for (let t = 0; t < 6; t++) { const a = (t + .5) / 6 * Math.PI; add(new THREE.ConeGeometry(.025, .09, 4), DEP_MATS.metal, Math.cos(a) * .36 * (sd > 0 ? 1 : -1), Math.sin(a) * .36 + .05, 0, pv); } jaws.push(pv); }
+    out.jaws = jaws; return out;
+  }
+  if (type === 'palisade') {
+    for (let k = 0; k < 6; k++) { const x = -1.25 + k * .5; add(C(.16, .19, 2.5, 7), DEP_MATS.wood, x, 1.25, 0); add(new THREE.ConeGeometry(.17, .45, 7), DEP_MATS.wood, x, 2.72, 0); }
+    add(B(3.05, .16, .12), DEP_MATS.dark, 0, 1.7, -.2); add(B(3.05, .16, .12), DEP_MATS.dark, 0, .7, -.2); return out;
+  }
+  if (type === 'ballista') {
+    for (let k = 0; k < 3; k++) { const a = k / 3 * 6.283; const l = add(C(.05, .06, 1.1, 6), DEP_MATS.dark, Math.cos(a) * .3, .5, Math.sin(a) * .3); l.rotation.set(Math.sin(a) * .35, 0, -Math.cos(a) * .35); }
+    const head = new THREE.Group(); head.position.y = 1.1; g.add(head);
+    add(B(.24, .22, 1.1), DEP_MATS.wood, 0, 0, 0, head); add(B(1.3, .07, .07), DEP_MATS.metal, 0, .04, .42, head); add(C(.025, .025, .9, 5), DEP_MATS.cloth, 0, .14, .1, head).rotation.x = Math.PI / 2;
+    out.head = head; return out;
+  }
+  if (type === 'flamer') {
+    add(C(.32, .32, 1, 12), DEP_MATS.red, 0, .5, 0); add(C(.33, .33, .06, 12), DEP_MATS.black, 0, .8, 0);
+    const head = new THREE.Group(); head.position.y = 1.12; g.add(head);
+    add(B(.3, .2, .3), DEP_MATS.black, 0, 0, 0, head); const nz = add(C(.07, .11, .85, 8), DEP_MATS.metal, 0, 0, .45, head); nz.rotation.x = Math.PI / 2;
+    const pf = add(new THREE.SphereGeometry(.05, 6, 5), DEP_MATS.fire, 0, 0, .9, head); pf.castShadow = false;
+    out.head = head; return out;
+  }
+  if (type === 'mortar') {
+    add(B(1.1, .3, 1.1), DEP_MATS.stone2, 0, .15, 0);
+    const head = new THREE.Group(); head.position.y = .45; g.add(head);
+    const tube = add(C(.2, .27, 1.1, 12), DEP_MATS.black, 0, .35, .15, head); tube.rotation.x = .75;
+    out.head = head; return out;
+  }
+  if (type === 'mine') { add(C(.3, .34, .1, 12), DEP_MATS.black, 0, .04, 0); add(C(.05, .05, .06, 6), DEP_MATS.red, 0, .11, 0); return out; }
+  if (type === 'barrel') {
+    add(C(.38, .38, 1.05, 14), DEP_MATS.red, 0, .52, 0); for (const y of [.22, .82]) add(C(.395, .395, .06, 14), DEP_MATS.black, 0, y, 0);
+    add(C(.25, .25, .02, 10), DEP_MATS.gold, 0, 1.06, 0); return out;
+  }
+  if (type === 'torch') {
+    add(C(.045, .06, 1.75, 6), DEP_MATS.dark, 0, .87, 0); add(C(.09, .07, .25, 8), DEP_MATS.black, 0, 1.78, 0);
+    const f = add(new THREE.ConeGeometry(.12, .38, 7), DEP_MATS.fire, 0, 2.08, 0); f.castShadow = false; out.fire = f; return out;
+  }
+  if (type === 'bell') {
+    for (const x of [-.45, .45]) add(B(.12, 2.15, .12), DEP_MATS.dark, x, 1.07, 0);
+    add(B(1.05, .12, .14), DEP_MATS.dark, 0, 2.1, 0); add(C(.17, .32, .45, 14, 1, true), DEP_MATS.gold, 0, 1.75, 0); add(new THREE.SphereGeometry(.17, 10, 6, 0, 6.283, 0, 1.6), DEP_MATS.gold, 0, 1.97, 0);
+    return out;
+  }
+  if (type === 'bed') {
+    add(B(2.1, .35, 1), DEP_MATS.wood, 0, .2, 0); add(B(1.9, .18, .9), DEP_MATS.cloth, 0, .45, 0); add(B(1.2, .06, .93), DEP_MATS.blanket, .32, .56, 0); add(B(.42, .12, .6), DEP_MATS.cloth, -.72, .6, 0);
+    return out;
+  }
+  if (type === 'garden') {
+    for (const [x, z, w, d] of [[0, -.95, 2, .1], [0, .95, 2, .1], [-.95, 0, .1, 2], [.95, 0, .1, 2]]) add(B(w, .28, d), DEP_MATS.wood, x, .14, z);
+    add(B(1.82, .18, 1.82), DEP_MATS.soil, 0, .12, 0);
+    const plants = new THREE.Group(), fruit = new THREE.Group(); plants.position.y = .2; fruit.position.y = .2; g.add(plants, fruit);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { const x = -.55 + i * .55, z = -.55 + j * .55; add(C(.02, .03, .5, 4), DEP_MATS.leaf, x, .25, z, plants); add(new THREE.IcosahedronGeometry(.2, 0), DEP_MATS.leaf, x, .5, z, plants); add(new THREE.SphereGeometry(.06, 6, 5), DEP_MATS.blanket, x + .1, .55, z + .08, fruit); }
+    out.plants = plants; out.fruit = fruit; return out;
+  }
+  if (type === 'collector') {
+    add(C(.36, .36, .85, 12), DEP_MATS.wood, 0, .42, 0); const fun = add(new THREE.ConeGeometry(.62, .5, 12, 1, true), DEP_MATS.hidem, 0, 1.12, 0); fun.rotation.x = Math.PI;
+    out.waterMesh = add(C(.33, .33, .02, 12), DEP_MATS.water, 0, .1, 0); return out;
+  }
   if (type === 'campfire') {
     for (let i = 0; i < 8; i++) { const a = i / 8 * 6.283; add(new THREE.DodecahedronGeometry(.16, 0), DEP_MATS.stone, Math.cos(a) * .48, .08, Math.sin(a) * .48); }
     for (let i = 0; i < 3; i++) { const l = add(new THREE.CylinderGeometry(.06, .07, .8, 6), DEP_MATS.dark, 0, .1 + i * .05, 0); l.rotation.set(0, i * 1.05, Math.PI / 2); }
@@ -1323,13 +1523,173 @@ function depModel(type) {
   return { g, half: [.65, .65], h: 2.4, fire: f };
 }
 function addDeployable(d) {
-  const mdl = depModel(d.t); d.obj = mdl.g; d.obj.position.set(d.x, d.y, d.z); d.obj.rotation.y = d.r;
+  const mdl = depModel(d.t), def = DEP_DEFS[d.t]; d.obj = mdl.g; d.obj.position.set(d.x, d.y, d.z); d.obj.rotation.y = d.r;
   const swap = Math.round(d.r / (Math.PI / 2)) % 2 !== 0; const hx = swap ? mdl.half[1] : mdl.half[0], hz = swap ? mdl.half[0] : mdl.half[1];
   d.box = { minX: d.x - hx, maxX: d.x + hx, minY: d.y, maxY: d.y + mdl.h, minZ: d.z - hz, maxZ: d.z + hz };
-  d.fire = mdl.fire;
-  if (d.t === 'campfire') { d.light = new THREE.PointLight(0xff8a3a, 1.6, 14, 2); d.light.position.y = .8; d.obj.add(d.light); }
+  d.fire = mdl.fire; d.head = mdl.head; d.jaws = mdl.jaws; d.plants = mdl.plants; d.fruit = mdl.fruit; d.waterMesh = mdl.waterMesh;
+  d.maxHp = def.hp; if (d.hp == null) d.hp = d.maxHp; d.ammo = d.ammo || 0; d.grow = d.grow || 0; d.water = d.water || 0;
+  if (d.t === 'beartrap' && d.armed == null) d.armed = true;
+  if (d.t === 'chest') { const ci = new Inventory(24); if (d.slots) d.slots.forEach((sl, i) => { ci.slots[i] = sl && ITEMS[sl.id] ? sl : null; }); d.inv = ci; delete d.slots; }
+  if (d.jaws) setTrap(d); if (d.plants) setGarden(d); if (d.waterMesh) setCollector(d);
   d.obj.traverse((m) => { m.userData.dep = d; });
   depRoot.add(d.obj); deployables.push(d); rebuildColliders();
+}
+function setTrap(d) { for (let k = 0; k < 2; k++) d.jaws[k].rotation.x = d.armed ? (k ? -1.45 : 1.45) : 0; }
+function setGarden(d) { d.plants.visible = !!d.planted; d.plants.scale.setScalar(.15 + .85 * d.grow); d.fruit.visible = !!d.planted && d.grow >= 1; }
+function setCollector(d) { d.waterMesh.visible = d.water > .05; d.waterMesh.position.y = .1 + d.water / 10 * .7; }
+// luces: un grupo fijo de 4 que se asignan a las fuentes más cercanas (antorchas, hogueras, fuegos)
+const LIGHTS = [];
+for (let i = 0; i < 4; i++) { const l = new THREE.PointLight(0xff8a3a, 0, 16, 2); scene.add(l); LIGHTS.push(l); }
+const _em = [];
+function updateLights(fl) {
+  _em.length = 0;
+  for (const d of deployables) { const def = DEP_DEFS[d.t]; if (def.light) _em.push([d.x, d.y + def.lightY, d.z, 1, 0]); }
+  for (const p of burning) { const b = p.boxes[0]; _em.push([(b.minX + b.maxX) / 2, b.maxY, (b.minZ + b.maxZ) / 2, 1.5, 0]); }
+  for (const e of _em) e[4] = (e[0] - camera.position.x) ** 2 + (e[2] - camera.position.z) ** 2;
+  _em.sort((a, b) => a[4] - b[4]);
+  LIGHTS.forEach((l, i) => { const e = _em[i]; if (e && e[4] < 6400) { l.position.set(e[0], e[1], e[2]); l.intensity = (1.1 + fl * .35) * e[3]; } else l.intensity = 0; });
+}
+const playerLit = () => deployables.some((d) => DEP_DEFS[d.t].light && Math.hypot(d.x - player.pos.x, d.z - player.pos.z) < 9);
+// daño a construcciones y objetos
+function damagePiece(p, dmg) {
+  if (!pieces.includes(p) || !(dmg > 0)) return;
+  p.hp -= dmg; siege.baseHitT = clock;
+  if (p.hp <= 0) { if (siege.active) siege.report.lost++; toast(`¡Han destruido tu ${PIECES[p.kind].name.toLowerCase()} de ${BTIERS[p.tier].name.toLowerCase()}!`, 'bad'); destroyPiece(p); }
+}
+function damageDep(d, dmg) {
+  if (!deployables.includes(d) || !(dmg > 0) || d.broken) return;
+  d.hp -= dmg; siege.baseHitT = clock;
+  if (d.hp > 0) return;
+  if (d.t === 'barrel') { removeDeployable(d); explode(new THREE.Vector3(d.x, d.y + .6, d.z), 5.5, 220, { pieceMult: .7 }); return; }
+  if (d.t === 'chest') { raidChest(d); return; }
+  burst(new THREE.Vector3(d.x, d.y + .5, d.z), 'wood', 10, 1.3); removeDeployable(d);
+  if (siege.active) siege.report.lost++;
+  toast(`¡Han destruido tu ${ITEMS[d.t].name.toLowerCase()}!`, 'bad');
+}
+function raidChest(d) {
+  d.hp = 0; d.broken = true; let stolen = 0; const taken = [];
+  for (let i = 0; i < d.inv.slots.length; i++) { const sl = d.inv.slots[i]; if (!sl) continue; const k = Math.ceil(sl.n * .35); sl.n -= k; stolen += k; taken.push([sl.id, k]); if (sl.n <= 0) d.inv.slots[i] = null; }
+  d.inv.touch(); siege.report.raided = true; sfx.bad();
+  const thief = raidBy && bots.includes(raidBy) && stolen ? raidBy : null; if (thief) { thief.carry = taken; thief.mode = 'retreat'; thief.life = 45; }
+  toast(`¡Han saqueado tu Arcón! Se han llevado ${stolen} objetos.` + (thief ? ' Mata al ladrón antes de que huya para recuperarlos.' : ' Repáralo con el martillo.'), 'bad');
+}
+// fuego: quema paja y madera; la lluvia lo apaga; se propaga a piezas vecinas
+const burning = new Set();
+function ignite(p) { if (!p || !pieces.includes(p) || BTIERS[p.tier].fire <= 0) return false; if (!p.burn) sfx.fire(); p.burn = 14; burning.add(p); return true; }
+let fireTick = 0;
+function boxesNear(a, b, m) { return a.minX - m < b.maxX && a.maxX + m > b.minX && a.minY - m < b.maxY && a.maxY + m > b.minY && a.minZ - m < b.maxZ && a.maxZ + m > b.minZ; }
+function updateFire(dt) {
+  fireTick += dt; const fx = fireTick > .1; if (fx) fireTick = 0;
+  for (const p of burning) {
+    if (!pieces.includes(p) || p.burn <= 0) { burning.delete(p); p.burn = 0; continue; }
+    p.burn -= dt * (1 + weather.rain * 5);
+    damagePiece(p, 7 * BTIERS[p.tier].fire * dt);
+    const b = p.boxes[0];
+    if (fx) burst(new THREE.Vector3(lerp(b.minX, b.maxX, Math.random()), lerp(b.minY, b.maxY, .2 + Math.random() * .8), lerp(b.minZ, b.maxZ, Math.random())), 'fire', 1, .9);
+    if (Math.random() < dt * .1) for (const q of pieces) if (q !== p && !q.burn && BTIERS[q.tier].fire > 0 && boxesNear(p.boxes[0], q.boxes[0], .4)) { ignite(q); break; }
+  }
+}
+// explosiones: dañan enemigos, jugador, construcciones (según material) y objetos; encadenan barriles
+function explode(p, R, dmg, opts) {
+  opts = opts || {};
+  burst(p, 'fire', 18, 2.2); burst(p, 'stone', 12, 1.3); sfx.boom();
+  const dpl = Math.hypot(player.pos.x - p.x, player.pos.y + 1 - p.y, player.pos.z - p.z);
+  camShake = Math.max(camShake, clamp(1.1 - dpl / 28, 0, .8)); flash = Math.max(flash, clamp(.5 - dpl / 70, 0, .5));
+  for (const b of bots.slice()) { const d = Math.hypot(b.pos.x - p.x, b.pos.y + 1 - p.y, b.pos.z - p.z); if (d < R) hurtBot(b, dmg * (1 - d / R * .6), null, opts.src || 'explosion'); }
+  if (dpl < R && !opts.noPlayer) hurtPlayer(dmg * .4 * (1 - dpl / R * .6), 'explosion');
+  for (const pc of pieces.slice()) {
+    let dd = Infinity; for (const b of pc.boxes) dd = Math.min(dd, Math.hypot(p.x - clamp(p.x, b.minX, b.maxX), p.y - clamp(p.y, b.minY, b.maxY), p.z - clamp(p.z, b.minZ, b.maxZ)));
+    if (dd < R) damagePiece(pc, dmg * (opts.pieceMult == null ? 1 : opts.pieceMult) * (1 - BTIERS[pc.tier].expRes) * (1 - dd / R * .5));
+  }
+  for (const d of deployables.slice()) { const dd = Math.hypot(d.x - p.x, d.z - p.z); if (dd < R && d.t !== 'mine') damageDep(d, dmg * .6 * (1 - dd / R * .5)); }
+}
+// torretas y trampas
+function nearestBot(x, y, z, R, minR) { let best = null, bd = R; for (const b of bots) { if (b.hp <= 0) continue; const d = Math.hypot(b.pos.x - x, b.pos.z - z); if (d < bd && d >= (minR || 0) && Math.abs(b.pos.y - y) < 12) { bd = d; best = b; } } return best; }
+function densestBot(x, y, z, R, minR) { let best = null, bs = -1; for (const b of bots) { const d = Math.hypot(b.pos.x - x, b.pos.z - z); if (b.hp <= 0 || d > R || d < minR) continue; let n = 0; for (const o of bots) if (Math.hypot(o.pos.x - b.pos.x, o.pos.z - b.pos.z) < 5) n++; if (n > bs) { bs = n; best = b; } } return best; }
+function updateTurret(d, T, dt) {
+  d.cd = (d.cd || 0) - dt;
+  if (d.ammo <= 0) return;
+  const tgt = d.t === 'mortar' ? densestBot(d.x, d.y, d.z, T.range, T.min) : nearestBot(d.x, d.y, d.z, T.range, T.min || 0);
+  if (!tgt) return;
+  const dx = tgt.pos.x - d.x, dz = tgt.pos.z - d.z, dist = Math.hypot(dx, dz), yaw = Math.atan2(dx, dz);
+  d.head.rotation.y = lerpAngle(d.head.rotation.y, yaw - d.r, Math.min(1, dt * 9));
+  if (d.cd > 0) return;
+  d.cd = T.cd;
+  const from = new THREE.Vector3(d.x, d.y + (d.t === 'mortar' ? .9 : 1.15), d.z);
+  if (d.t === 'ballista') {
+    const t = dist / 70, ax = tgt.pos.x + (tgt.mvx || 0) * t, az = tgt.pos.z + (tgt.mvz || 0) * t, ay = tgt.pos.y + tgt.height * .55;
+    const v = new THREE.Vector3(ax - from.x, ay - from.y, az - from.z).normalize().multiplyScalar(70); v.y += 9.8 * .25 * t * .5;
+    spawnProj('bolt', from, v, { dmg: 48, owner: 'turret' }); d.ammo--; sfx.bow();
+  } else if (d.t === 'flamer') {
+    for (const b of bots) { const bx = b.pos.x - d.x, bz = b.pos.z - d.z, bd = Math.hypot(bx, bz); if (bd > T.range) continue; let da = Math.abs(Math.atan2(bx, bz) - yaw); if (da > Math.PI) da = 6.283 - da; if (da < .5) hurtBot(b, 9, null, 'turret'); }
+    for (let k = 0; k < 3; k++) { const f = .3 + Math.random() * .7; burst(new THREE.Vector3(d.x + dx / dist * T.range * f + (Math.random() - .5), d.y + 1.1, d.z + dz / dist * T.range * f + (Math.random() - .5)), 'fire', 1, 1.6); }
+    d.fuelT = (d.fuelT || 0) + T.cd; if (d.fuelT >= 3) { d.fuelT = 0; d.ammo--; }
+    if (Math.random() < .3) sfx.flame();
+  } else {
+    const TT = 2.4, v = new THREE.Vector3((tgt.pos.x - from.x) / TT, (tgt.pos.y + .3 - from.y) / TT + 9.8 * TT / 2, (tgt.pos.z - from.z) / TT);
+    spawnProj('shell', from, v, { dmg: 115, R: 5, owner: 'turret' }); d.ammo--; sfx.thud();
+  }
+}
+let bellT = -99;
+function updateDeployables(dt) {
+  for (const d of deployables.slice()) {
+    const def = DEP_DEFS[d.t];
+    if (def.turret) updateTurret(d, def.turret, dt);
+    else if (d.t === 'spikes') {
+      const hx = (d.box.maxX - d.box.minX) / 2 + .35, hz = (d.box.maxZ - d.box.minZ) / 2 + .35;
+      for (const b of bots) if (Math.abs(b.pos.x - d.x) < hx && Math.abs(b.pos.z - d.z) < hz && b.pos.y - d.y < 1.2) {
+        b.slow = .4;
+        if (!b.spikeT || clock - b.spikeT > .5) { b.spikeT = clock; if (!b.spiked) { b.spiked = true; chEvent('trap'); } hurtBot(b, 10, null, 'trap'); damageDep(d, 6); if (!deployables.includes(d)) break; }
+      }
+    } else if (d.t === 'beartrap' && d.armed) {
+      for (const b of bots) if (Math.hypot(b.pos.x - d.x, b.pos.z - d.z) < .9 && !b.def.boss) { b.stun = 4; d.armed = false; setTrap(d); sfx.clank(); chEvent('trap'); hurtBot(b, 35, null, 'trap'); break; }
+      if (d.armed && Math.hypot(player.pos.x - d.x, player.pos.z - d.z) < .5 && Math.abs(player.pos.y - d.y) < .8) { d.armed = false; setTrap(d); sfx.clank(); player.stun = 1.5; hurtPlayer(15, 'trap'); toast('¡Has pisado tu propio cepo!', 'bad'); }
+    } else if (d.t === 'mine') {
+      for (const b of bots) if (Math.hypot(b.pos.x - d.x, b.pos.z - d.z) < 1.3) { removeDeployable(d); explode(new THREE.Vector3(d.x, d.y + .3, d.z), 4, 170, { pieceMult: .2, src: 'trap' }); break; }
+    } else if (d.t === 'garden' && d.planted && d.grow < 1) { d.grow = Math.min(1, d.grow + dt / 300 * (weather.rain > .3 ? 1.6 : 1)); setGarden(d); }
+    else if (d.t === 'collector' && weather.rain > .3 && d.water < 10) { d.water = Math.min(10, d.water + dt / 10); setCollector(d); }
+  }
+  if (siege.active && clock - siege.baseHitT < 1 && clock - bellT > 15 && deployables.some((d) => d.t === 'bell')) {
+    const base = baseTarget(); if (base && Math.hypot(base.x - player.pos.x, base.z - player.pos.z) > 35) { bellT = clock; sfx.bell(); toast('¡La campana suena: están atacando tu base!', 'bad'); }
+  }
+}
+function useDeployable(d) {
+  const def = DEP_DEFS[d.t];
+  if (d.t === 'chest') { if (d.broken) { toast('El Arcón está roto. Repáralo con el martillo.', 'bad'); return; } chestOpen = d; if (!panelOpen) togglePanel(); else renderPanel(true); return; }
+  if (def.turret) {
+    const T = def.turret, n = Math.min(T.cap - d.ammo, inv.count(T.ammo));
+    if (n <= 0) { toast(d.ammo >= T.cap ? 'Está cargada al máximo' : 'Necesitas ' + ITEMS[T.ammo].name.toLowerCase() + ' para cargarla', 'info'); return; }
+    inv.remove(T.ammo, n); d.ammo += n; sfx.craft(); toast(`Cargada: ${d.ammo}/${T.cap} ${ITEMS[T.ammo].name.toLowerCase()}`, 'info'); return;
+  }
+  if (d.t === 'beartrap') { if (!d.armed) { d.armed = true; setTrap(d); sfx.clank(); toast('Cepo armado', 'info'); } return; }
+  if (d.t === 'garden') {
+    if (!d.planted) { if (!inv.remove('seeds', 1)) { toast('Necesitas semillas (de los arbustos de bayas o fabrícalas con bayas)', 'bad'); return; } d.planted = true; d.grow = 0; setGarden(d); sfx.bush(); toast('Plantado: crecerá en unos 5 minutos (más rápido con lluvia)', 'info'); return; }
+    if (d.grow < 1) { toast(`Aún está creciendo (${Math.round(d.grow * 100)}%)`, 'info'); return; }
+    giveItem('berries', 10); giveItem('seeds', 2); if (Math.random() < .4) giveItem('apple', 3);
+    d.planted = false; d.grow = 0; setGarden(d); sfx.bush(); chEvent('harvest'); return;
+  }
+  if (d.t === 'collector') {
+    if (d.water < 1) { toast('Está vacío. Se llena cuando llueve.', 'info'); return; }
+    const sl = inv.slots[sel];
+    if (sl && sl.id === 'waterskin') { const k = Math.min(5, Math.floor(d.water)); inv.slots[sel] = { id: 'waterskin_full', n: 1, dur: k }; inv.touch(); d.water -= k; setCollector(d); sfx.drink(); toast('Odre lleno', 'info'); return; }
+    player.thirst = Math.min(100, player.thirst + 20); d.water -= 1; setCollector(d); stats.drank = (stats.drank || 0) + 1; sfx.drink(); toast('Agua', 20, 'w:drink'); return;
+  }
+  if (d.t === 'bed') { stats.bedIdx = deployables.indexOf(d); toast('Reaparecerás en esta cama', 'info'); return; }
+  if (STATION_NAMES[d.t] && !panelOpen) togglePanel();
+}
+function repairTarget(a) {
+  let c;
+  if (a.kind === 'piece') {
+    const p = a.piece; if (p.hp >= p.maxHp && !p.burn) { toast('No necesita reparación', 'info'); return; }
+    c = {}; const full = pieceCost(p.kind, p.tier); for (const k in full) c[k] = Math.max(1, Math.ceil(full[k] * .15));
+    if (!inv.pay(c)) { toast('Para reparar necesitas ' + costText(c), 'bad'); sfx.bad(); return; }
+    p.hp = Math.min(p.maxHp, p.hp + p.maxHp * .25); p.burn = 0;
+  } else {
+    const d = a.dep; if (d.hp >= d.maxHp) { toast('No necesita reparación', 'info'); return; }
+    c = { wood: 6, stone: 3 }; if (!inv.pay(c)) { toast('Para reparar necesitas ' + costText(c), 'bad'); sfx.bad(); return; }
+    d.hp = Math.min(d.maxHp, d.hp + d.maxHp * .3); if (d.t === 'chest' && d.hp > d.maxHp * .5) { d.broken = false; toast('Arcón reparado', 'info'); }
+  }
+  stats.repairs = (stats.repairs || 0) + 1; chEvent('repair'); sfx.build(); burst(a.p, 'wood', 5);
 }
 function removeDeployable(d) { depRoot.remove(d.obj); deployables.splice(deployables.indexOf(d), 1); rebuildColliders(); }
 function hasStation(t) { return deployables.some((d) => d.t === t && Math.hypot(d.x - player.pos.x, d.z - player.pos.z) < 4.5); }
@@ -1339,9 +1699,9 @@ const poiRoot = new THREE.Group(); scene.add(poiRoot);
 const staticBoxes = [], crates = [];
 const POI_MATS = { cloth: stdMat('#8d7a5a', { side: THREE.DoubleSide }), red: stdMat('#b23a2e'), lamp: new THREE.MeshBasicMaterial({ color: new THREE.Color(6, 5, 2.4) }), beam: new THREE.MeshBasicMaterial({ color: new THREE.Color(1, .9, .55), transparent: true, opacity: .12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }) };
 const LOOT = {
-  ruins: [['ingot', 1, 3, .8], ['arrow', 4, 10, .7], ['bandage', 1, 2, .6], ['iron_pick', 1, 1, .1], ['hide', 2, 4, .4]],
-  camp: [['cooked_meat', 2, 4, .8], ['waterskin_full', 1, 1, .3], ['arrow', 3, 8, .6], ['fiber', 6, 14, .6], ['bandage', 1, 2, .5]],
-  lighthouse: [['ingot', 3, 6, 1], ['iron_sword', 1, 1, .25], ['bandage', 2, 3, .8], ['arrow', 8, 14, .7], ['bow', 1, 1, .2]],
+  ruins: [['ingot', 1, 3, .8], ['arrow', 4, 10, .7], ['bandage', 1, 2, .6], ['iron_pick', 1, 1, .1], ['hide', 2, 4, .4], ['gear', 1, 2, .35], ['sulfur', 4, 8, .4], ['bp', 1, 1, .3]],
+  camp: [['cooked_meat', 2, 4, .8], ['waterskin_full', 1, 1, .3], ['arrow', 3, 8, .6], ['fiber', 6, 14, .6], ['bandage', 1, 2, .5], ['seeds', 3, 6, .5], ['torch', 2, 4, .5], ['bp', 1, 1, .15]],
+  lighthouse: [['ingot', 3, 6, 1], ['iron_sword', 1, 1, .25], ['bandage', 2, 3, .8], ['arrow', 8, 14, .7], ['gunpowder', 4, 8, .6], ['gear', 2, 3, .6], ['bp', 1, 1, .6]],
 };
 function poiBox(g, w, h, d, x, y, z, mat, collide, rx, ry, rz) {
   const m = new THREE.Mesh(boxGeo(w, h, d), mat); m.position.set(x, y, z); m.rotation.set(rx || 0, ry || 0, rz || 0); m.castShadow = m.receiveShadow = true; g.add(m);
@@ -1398,9 +1758,11 @@ rebuildColliders();
 function openCrate(c) {
   if (clock < c.readyAt) { toast('Está vacía. Vuelve más tarde.', 'info'); return; }
   let got = 0;
-  for (const [id, a, b, chance] of LOOT[c.poi.type]) if (Math.random() < chance) { giveItem(id, a + Math.floor(Math.random() * (b - a + 1))); got++; }
+  const first = !stats.firstBp && c.poi.type === 'lighthouse';
+  if (first) { stats.firstBp = true; stats.bp = stats.bp || {}; if (!stats.bp.ballista) { stats.bp.ballista = true; toast('¡Plano conseguido: Torreta de ballesta!', 'info'); } got++; }
+  for (const [id, a, b, chance] of LOOT[c.poi.type]) if (Math.random() < chance) { if (id === 'bp') grantBlueprint(); else giveItem(id, a + Math.floor(Math.random() * (b - a + 1))); got++; }
   if (!got) giveItem('fiber', 5);
-  c.readyAt = clock + 480; sfx.craft(); stats.crates = (stats.crates || 0) + 1;
+  c.readyAt = clock + 480; sfx.craft(); stats.crates = (stats.crates || 0) + 1; chEvent('crate');
 }
 
 // ---------------------------------------------------------------- física de personajes
@@ -1490,37 +1852,373 @@ function buildVM(key) {
 }
 let swingT = 1, bobT = 0, camShake = 0, camDip = 0, stepAcc = 0;
 
-// ---------------------------------------------------------------- saqueadores
+// ---------------------------------------------------------------- Errantes: enemigos y asedios nocturnos
 const bots = [];
 const botRoot = new THREE.Group(); scene.add(botRoot);
-const BOT_MATS = { body: stdMat('#5b4a3a'), pants: stdMat('#3b3530'), skin: stdMat('#b98a68'), band: stdMat('#b8372c'), club: stdMat('#6e4421') };
-function spawnBot(x, z) {
-  const g = new THREE.Group(); const add = (geo, mat, px, py, pz) => { const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); m.castShadow = true; g.add(m); return m; };
-  const legL = add(new THREE.BoxGeometry(.2, .8, .22), BOT_MATS.pants, -.13, .4, 0), legR = add(new THREE.BoxGeometry(.2, .8, .22), BOT_MATS.pants, .13, .4, 0);
-  add(new THREE.BoxGeometry(.56, .7, .3), BOT_MATS.body, 0, 1.15, 0);
+const BOT_MATS = { pants: stdMat('#3b3530'), skin: stdMat('#b98a68'), wood: stdMat('#6e4421'), iron: stdMat('#9aa3a8', { metalness: .6, roughness: .45 }), dark: stdMat('#2b2b2b'), gold: stdMat('#d4b062', { metalness: .7, roughness: .35 }), keg: stdMat('#7a5232'), cape: stdMat('#7a1414'), hit: stdMat('#9c2a22'), glow: new THREE.MeshBasicMaterial({ color: new THREE.Color(7, 2.6, .6) }), eye: new THREE.MeshBasicMaterial({ color: new THREE.Color(6, .5, .2) }) };
+const ETYPES = {
+  raider: { name: 'Saqueador', hp: 70, sp: 4.3, dmg: 10, bdmg: 12, cd: 1.2, reach: 1.9, body: '#5b4a3a', band: '#b8372c', cost: 1, loot: [['fiber', 2, 5, .8], ['ore', 1, 3, .6], ['arrow', 2, 5, .4], ['ingot', 1, 1, .15]] },
+  archer: { name: 'Arquero', hp: 55, sp: 4, dmg: 6, bdmg: 6, cd: 1.3, reach: 1.8, ranged: { range: 26, keep: 14, cd: 2.4, dmg: 9 }, body: '#3e5a3a', band: '#24361f', cost: 1.3, from: 2, loot: [['arrow', 4, 9, .9], ['fiber', 2, 4, .5], ['hide', 1, 2, .3]] },
+  torcher: { name: 'Incendiario', hp: 60, sp: 4.5, dmg: 8, bdmg: 8, cd: 1.3, reach: 1.9, torch: { range: 17, cd: 6.5 }, body: '#6a3a22', band: '#e07a2a', cost: 1.5, from: 3, loot: [['fat', 1, 3, .8], ['charcoal', 2, 4, .7], ['torch', 1, 2, .3]] },
+  brute: { name: 'Bruto', hp: 260, sp: 3.3, dmg: 24, bdmg: 55, cd: 1.8, reach: 2.4, scale: 1.35, knock: 9, doors: true, body: '#4a4440', band: '#2b2b2b', cost: 3, from: 4, loot: [['ingot', 1, 3, .8], ['gear', 1, 1, .3], ['hide', 2, 3, .5], ['bp', 1, 1, .1]] },
+  sapper: { name: 'Zapador', hp: 45, sp: 5.3, dmg: 0, bdmg: 0, cd: 1, reach: 1.6, sapper: true, body: '#3a3a3a', band: '#d4b062', cost: 2, from: 5, loot: [['gunpowder', 1, 3, .8], ['sulfur', 2, 4, .6]] },
+  boss: { name: 'Señor de la Guerra', hp: 1600, sp: 3.5, dmg: 30, bdmg: 80, cd: 1.6, reach: 2.7, scale: 1.7, knock: 12, doors: true, boss: true, body: '#5a1e1e', band: '#d4b062', loot: [['ingot', 8, 12, 1], ['gear', 3, 5, 1], ['gunpowder', 6, 10, 1], ['bp', 1, 1, 1]] },
+};
+function botModel(type) {
+  const def = ETYPES[type], g = new THREE.Group(), body = stdMat(def.body), band = stdMat(def.band), out = { g };
+  const add = (geo, mat, x, y, z, par) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; (par || g).add(m); return m; };
+  const B = (w, h, d) => new THREE.BoxGeometry(w, h, d), C = (a, b, h, n) => new THREE.CylinderGeometry(a, b, h, n || 8);
+  out.legL = add(B(.2, .8, .22), BOT_MATS.pants, -.13, .4, 0); out.legR = add(B(.2, .8, .22), BOT_MATS.pants, .13, .4, 0);
+  out.torso = add(B(.56, .7, .3), body, 0, 1.15, 0);
   add(new THREE.SphereGeometry(.2, 10, 8), BOT_MATS.skin, 0, 1.68, 0);
-  add(new THREE.CylinderGeometry(.205, .205, .08, 10), BOT_MATS.band, 0, 1.74, 0);
-  for (const ex of [-.07, .07]) add(new THREE.BoxGeometry(.05, .035, .02), BOT_MATS.pants, ex, 1.66, .19);
-  const arm = new THREE.Group(); arm.position.set(.36, 1.4, 0); g.add(arm);
-  const a1 = new THREE.Mesh(new THREE.BoxGeometry(.14, .6, .14), BOT_MATS.body); a1.position.y = -.28; arm.add(a1);
-  const club = new THREE.Mesh(new THREE.CylinderGeometry(.05, .08, .7, 6), BOT_MATS.club); club.position.set(0, -.55, -.3); club.rotation.x = Math.PI / 2; arm.add(club);
-  const b = { pos: new THREE.Vector3(x, terrainH(x, z), z), vel: new THREE.Vector3(), radius: .4, height: 1.8, onGround: true, hp: 70, yaw: 0, g, legL, legR, arm, state: 'wander', wx: x, wz: z, wt: 0, atk: 0, stuck: 0, flash: 0, walk: 0, swing: 1, target: null };
-  g.traverse((m) => { m.userData.bot = b; });
-  botRoot.add(g); bots.push(b); return b;
+  const red = type === 'brute' || type === 'boss';
+  for (const ex of [-.07, .07]) add(B(.05, .035, .02), red ? BOT_MATS.eye : BOT_MATS.dark, ex, 1.68, .19);
+  if (type === 'raider' || type === 'torcher' || type === 'sapper') add(C(.205, .205, .08, 10), band, 0, 1.74, 0);
+  if (type === 'archer') add(new THREE.ConeGeometry(.25, .42, 8), band, 0, 1.84, -.02);
+  if (red) {
+    add(B(.74, .16, .36), type === 'boss' ? BOT_MATS.gold : BOT_MATS.iron, 0, 1.47, 0);
+    add(new THREE.SphereGeometry(.225, 10, 6, 0, 6.283, 0, 1.5), BOT_MATS.iron, 0, 1.7, 0);
+  }
+  if (type === 'boss') {
+    for (const sd of [-1, 1]) { const h = add(new THREE.ConeGeometry(.06, .34, 6), BOT_MATS.gold, sd * .22, 1.9, 0); h.rotation.z = -sd * .7; }
+    add(B(.6, 1.1, .04), BOT_MATS.cape, 0, 1.0, -.19);
+  }
+  if (type === 'sapper') { add(C(.2, .2, .5, 10), BOT_MATS.keg, 0, 1.2, -.32); for (const y of [1.02, 1.38]) add(C(.205, .205, .04, 10), BOT_MATS.dark, 0, y, -.32); out.fuse = add(new THREE.SphereGeometry(.05, 6, 5), BOT_MATS.glow, 0, 1.5, -.32); }
+  const arm = new THREE.Group(); arm.position.set(.36, 1.4, 0); g.add(arm); add(B(.14, .6, .14), body, 0, -.28, 0, arm);
+  const armL = new THREE.Group(); armL.position.set(-.36, 1.4, 0); g.add(armL); add(B(.14, .6, .14), body, 0, -.28, 0, armL);
+  if (type === 'raider') add(C(.05, .08, .7, 6), BOT_MATS.wood, 0, -.55, -.3, arm).rotation.x = Math.PI / 2;
+  else if (type === 'archer') { const bow = add(new THREE.TorusGeometry(.4, .02, 4, 14, Math.PI), BOT_MATS.wood, 0, -.55, .05, armL); bow.rotation.set(0, Math.PI / 2, Math.PI / 2); }
+  else if (type === 'torcher') { add(C(.035, .04, .5, 6), BOT_MATS.wood, 0, -.55, -.2, arm).rotation.x = Math.PI / 2; add(new THREE.SphereGeometry(.09, 7, 6), BOT_MATS.glow, 0, -.55, -.47, arm); }
+  else if (type === 'brute') { add(C(.04, .04, .9, 6), BOT_MATS.wood, 0, -.55, -.4, arm).rotation.x = Math.PI / 2; add(B(.32, .32, .45), BOT_MATS.iron, 0, -.55, -.85, arm); }
+  else if (type === 'boss') {
+    add(C(.04, .04, 1.1, 6), BOT_MATS.wood, 0, -.55, -.5, arm).rotation.x = Math.PI / 2; add(B(.06, .5, .38), BOT_MATS.iron, 0, -.55, -.95, arm);
+    add(B(.75, 1, .07), BOT_MATS.iron, 0, -.35, .24, armL); add(new THREE.SphereGeometry(.12, 8, 6), BOT_MATS.gold, 0, -.35, .29, armL);
+  }
+  out.arm = arm; out.armL = armL;
+  if (def.scale) g.scale.setScalar(def.scale);
+  return out;
 }
-function killBot(b, byPlayer) {
-  botRoot.remove(b.g); bots.splice(bots.indexOf(b), 1);
+const siege = { active: false, night: 0, blood: false, queue: [], spawnT: 0, groups: [0], boss: null, baseHitT: -99, report: { lost: 0, raided: false, kills: 0 } };
+let raidBy = null;
+const isBloodNight = (n) => n > 0 && n % 7 === 0;
+function spawnBot(type, x, z, lvl) {
+  if (typeof type === 'number') { lvl = z; z = x; x = type; type = 'raider'; }
+  const def = ETYPES[type], m = botModel(type), sc = def.scale || 1, L = Math.max(1, lvl || siege.night || 1);
+  const b = { type, def, pos: new THREE.Vector3(x, terrainH(x, z) + .05, z), vel: new THREE.Vector3(), radius: .4 * sc, height: 1.8 * sc, onGround: true, yaw: 0, g: m.g, legL: m.legL, legR: m.legR, arm: m.arm, armL: m.armL, torso: m.torso, baseMat: m.torso.material, fuseM: m.fuse,
+    mode: 'siege', atk: Math.random(), rcd: 1 + Math.random() * 2, stuck: 0, flash: 0, walk: 0, swing: 1, stun: 0, slow: 0, mvx: 0, mvz: 0, aggroT: 0, think: 0, tgt: null, fuse: -1, losT: 0, los: false, life: 30, detT: 0, detS: 1,
+    dmgMul: 1 + (L - 1) * .06, slamT: 5, hornT: 15, windup: 0 };
+  b.maxHp = b.hp = Math.round(def.hp * (1 + (L - 1) * .1));
+  m.g.traverse((o) => { o.userData.bot = b; });
+  m.g.position.copy(b.pos); botRoot.add(m.g); bots.push(b);
+  if (def.boss) siege.boss = b;
+  return b;
+}
+function killBot(b, byPlayer, src) {
+  const i = bots.indexOf(b); if (i < 0) return;
+  bots.splice(i, 1); botRoot.remove(b.g); b.hp = Math.min(b.hp, 0);
+  if (siege.boss === b) siege.boss = null;
   if (!byPlayer) return;
-  stats.kills++;
-  const r = Math.random();
-  const loot = [['ore', 2 + (Math.random() * 3 | 0)], ['fiber', 4 + (Math.random() * 4 | 0)]];
-  if (r < .45) loot.push(['arrow', 3 + (Math.random() * 4 | 0)]);
-  if (r > .6) loot.push(['ingot', 1]);
-  for (const [id, n] of loot) giveItem(id, n);
-  toast('Saqueador abatido', 'info');
+  const def = b.def, at = b.pos.clone().setY(b.pos.y + b.height * .55);
+  burst(at, 'blood', 10, 1.2);
+  stats.kills++; stats.killsBy = stats.killsBy || {}; stats.killsBy[b.type] = (stats.killsBy[b.type] || 0) + 1;
+  if (siege.active) siege.report.kills++;
+  chEvent('kill'); chEvent('kill:' + b.type); if (src === 'turret' || src === 'trap') chEvent('turretkill');
+  const near = Math.hypot(b.pos.x - player.pos.x, b.pos.z - player.pos.z) < 60;
+  for (const [id, a, c, p] of def.loot) if (Math.random() < p * (near ? 1 : .5)) { if (id === 'bp') grantBlueprint(); else giveItem(id, a + Math.floor(Math.random() * (c - a + 1))); }
+  if (b.carry) { for (const [id, n] of b.carry) giveItem(id, n); toast('¡Has recuperado el botín robado del Arcón!', 'info'); }
+  if (def.boss) { stats.bosses = (stats.bosses || 0) + 1; sfx.horn(); showBanner('Señor de la Guerra abatido', 'Su botín es tuyo. Sin su caudillo, la horda se dispersa.', false); for (const o of bots) { o.mode = 'retreat'; o.life = 20; } siege.queue.length = 0; }
+  else toast(def.name + ' abatido', 1, 'k:' + b.type);
+  if (def.sapper && !b.exploded) { b.exploded = true; explode(at, 3.6, 110 * b.dmgMul, { src: 'sapper', pieceMult: .6 }); }
 }
-let botTimer = 40;
-function isNight() { return sunElev < -.02; }
+function hurtBot(b, dmg, p, src, from) {
+  if (!bots.includes(b) || b.hp <= 0 || !(dmg > 0)) return;
+  src = src || 'player'; if (!from && (src === 'player' || src === 'arrow')) from = player.pos;
+  if (b.def.boss && from) {
+    const fx = from.x - b.pos.x, fz = from.z - b.pos.z, fd = Math.hypot(fx, fz) || 1;
+    if ((fx * Math.sin(b.yaw) + fz * Math.cos(b.yaw)) / fd > .45) { dmg *= .3; sfx.clank(); burst(p || at1(b), 'stone', 3); }
+  }
+  b.hp -= dmg; b.flash = .15;
+  if (src === 'player' || src === 'arrow') {
+    b.aggroT = 15; sfx.hit();
+    if (!b.def.scale && src === 'player') { const dx = b.pos.x - player.pos.x, dz = b.pos.z - player.pos.z, d = Math.hypot(dx, dz) || 1; b.pos.x += dx / d * .4; b.pos.z += dz / d * .4; }
+  } else if (Math.random() < .25) sfx.hit();
+  burst(p || at1(b), 'blood', src === 'turret' ? 2 : 5);
+  if (b.hp <= 0) killBot(b, true, src);
+}
+const at1 = (b) => b.pos.clone().setY(b.pos.y + b.height * .6);
+// geometría para la IA: línea de visión y distancias a piezas
+function segBox(ax, ay, az, bx, by, bz, c) {
+  let t0 = 0, t1 = 1; const d = [bx - ax, by - ay, bz - az], o = [ax, ay, az], mn = [c.minX, c.minY, c.minZ], mx = [c.maxX, c.maxY, c.maxZ];
+  for (let i = 0; i < 3; i++) {
+    if (Math.abs(d[i]) < 1e-9) { if (o[i] < mn[i] || o[i] > mx[i]) return false; continue; }
+    let u0 = (mn[i] - o[i]) / d[i], u1 = (mx[i] - o[i]) / d[i]; if (u0 > u1) { const s = u0; u0 = u1; u1 = s; }
+    t0 = Math.max(t0, u0); t1 = Math.min(t1, u1); if (t0 > t1) return false;
+  }
+  return true;
+}
+function losClear(ax, ay, az, bx, by, bz, ignore) {
+  for (let k = 1; k < 6; k++) { const t = k / 6; if (lerp(ay, by, t) < terrainH(lerp(ax, bx, t), lerp(az, bz, t))) return false; }
+  for (const c of colliders) { if (ignore && (c.dep === ignore || c.piece === ignore)) continue; if (segBox(ax, ay, az, bx, by, bz, c)) return false; }
+  return true;
+}
+const boxDist = (x, z, b) => Math.hypot(x - clamp(x, b.minX, b.maxX), z - clamp(z, b.minZ, b.maxZ));
+function objDist(b, o) { let d = Infinity; for (const bx of (o.boxes || [o.box])) { if (bx.maxY < b.pos.y - .5 || bx.minY > b.pos.y + b.height) continue; d = Math.min(d, boxDist(b.pos.x, b.pos.z, bx)); } return d; }
+const objCenter = (o) => o.boxes ? { x: o.obj.position.x, y: o.obj.position.y, z: o.obj.position.z } : { x: o.x, y: o.y, z: o.z };
+const objAlive = (o) => o.boxes ? pieces.includes(o) : deployables.includes(o) && !o.broken;
+function baseCenter() { let x = 0, y = 0, z = 0, n = 0; for (const p of pieces) if (p.kind === 'foundation') { x += p.i * GRID + 1.5; y += p.top; z += p.j * GRID + 1.5; n++; } return n ? { x: x / n, y: y / n, z: z / n } : null; }
+// objetivo del asedio: el Arcón más cercano a la base; si no hay, el centro de la base
+function baseTarget() {
+  const c = baseCenter(); let best = null, bd = Infinity;
+  for (const d of deployables) if (d.t === 'chest' && !d.broken && d.hp > 0) { const dd = c ? Math.hypot(d.x - c.x, d.z - c.z) : 0; if (dd < bd) { bd = dd; best = d; } }
+  if (best) return { x: best.x, y: best.y, z: best.z, chest: best };
+  return c;
+}
+// el muro más fácil de romper (vida efectiva) cerca del objetivo; los brutos prefieren puertas
+function pickBreach(b, base) {
+  let best = null, bs = Infinity;
+  const consider = (o, eff, c) => { if (Math.hypot(c.x - base.x, c.z - base.z) > 18) return; const s = eff * (1 + Math.hypot(c.x - b.pos.x, c.z - b.pos.z) / 7); if (s < bs) { bs = s; best = o; } };
+  for (const p of pieces) { if ((p.kind !== 'wall' && p.kind !== 'door') || p.L !== 0) continue; let eff = p.hp / (1.02 - BTIERS[p.tier].res); if (b.def.doors && p.kind === 'door') eff *= .35; consider(p, eff, p.obj.position); }
+  for (const d of deployables) if (d.t === 'palisade') consider(d, d.hp, d);
+  return best;
+}
+function nearestBurnable(b, base) {
+  let best = null, bd = Infinity;
+  for (const p of pieces) { if (BTIERS[p.tier].fire <= 0 || p.burn > 0) continue; const c = p.obj.position; if (Math.hypot(c.x - base.x, c.z - base.z) > 20) continue; const d = Math.hypot(c.x - b.pos.x, c.z - b.pos.z); if (d < bd) { bd = d; best = p; } }
+  return best;
+}
+function landSpot(cx, cz, ang, r0, r1, minP) {
+  for (let t = 0; t < 30; t++) {
+    const a = ang + (Math.random() - .5) * (t < 15 ? .6 : 3), r = r0 + Math.random() * (r1 - r0), x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
+    if (Math.hypot(x, z) < HALF * .9 && terrainH(x, z) > 1.2 && !isWet(x, z) && Math.hypot(x - player.pos.x, z - player.pos.z) > (minP == null ? 35 : minP)) return [x, z];
+  }
+  return null;
+}
+// director del asedio: oleadas que crecen cada noche
+function startSiege(n) {
+  const base = baseTarget(), blood = isBloodNight(n);
+  siege.active = true; siege.night = n; siege.blood = blood; stats.siegeDone = n;
+  siege.report = { night: n, blood, lost: 0, raided: false, kills: 0, hadBase: !!base };
+  let budget = (3 + n * 1.9) * (blood ? 2 : 1); if (!base) budget *= .5;
+  const types = Object.keys(ETYPES).filter((t) => !ETYPES[t].boss && n >= (ETYPES[t].from || 1)), W = { raider: 5, archer: 3, torcher: 2.5, brute: 1.6, sapper: 1.6 }, q = [];
+  while (budget > .9) {
+    let tot = 0; for (const t of types) tot += W[t];
+    let r = Math.random() * tot, pick = types[0]; for (const t of types) if ((r -= W[t]) <= 0) { pick = t; break; }
+    if (ETYPES[pick].cost > budget) pick = 'raider';
+    q.push(pick); budget -= ETYPES[pick].cost;
+  }
+  const fresh = types.find((t) => ETYPES[t].from === n); if (fresh && !q.includes(fresh)) q.push(fresh);
+  if (blood) { for (let k = 0; k < 3 + Math.floor(n / 7) * 2; k++) q.splice(Math.floor(Math.random() * q.length), 0, 'wolf'); q.splice(Math.floor(q.length * .45), 0, 'boss'); }
+  siege.queue = q; siege.spawnT = 5;
+  const nG = 1 + (n >= 3) + (n >= 6), a0 = Math.random() * 6.283; siege.groups = []; for (let k = 0; k < nG; k++) siege.groups.push(a0 + k * 6.283 / nG + (Math.random() - .5) * .8);
+  sfx.horn();
+  const men = q.filter((t) => t !== 'wolf').length, NEWS = { archer: 'Esta noche llegan arqueros.', torcher: 'Cuidado: llegan incendiarios. La paja y la madera arden.', brute: 'Llegan brutos: revientan puertas.', sapper: 'Llegan zapadores con barriles de pólvora. Mátalos lejos de tus muros.' };
+  showBanner(blood ? 'Luna de sangre' : `Noche ${n}: asedio`, (fresh ? NEWS[fresh] + ' ' : '') + (blood ? 'El Señor de la Guerra viene a por tu Arcón, y los lobos con él.' : base ? `${men} Errantes vienen a por tu ${base.chest ? 'Arcón' : 'base'}. Resiste hasta el amanecer.` : `${men} Errantes te están dando caza. Levanta un refugio.`), blood);
+}
+function endSiege() {
+  siege.active = false; siege.queue.length = 0;
+  for (const b of bots) { b.mode = 'retreat'; b.life = 25; }
+  for (const a of animals) if (a.siege) { a.provoked = 0; a.siege = false; }
+  const r = siege.report, n = siege.night, rewards = [];
+  stats.nightsSurvived = (stats.nightsSurvived || 0) + 1; stats.bestNight = Math.max(stats.bestNight || 0, n);
+  if (r.hadBase && r.lost === 0 && !r.raided) { chEvent('noloss'); giveItem('gear', 1); rewards.push('Engranaje por no perder nada'); }
+  if (n % 3 === 0 || siege.blood) { const k = grantBlueprint(); rewards.push(k ? 'Plano: ' + BLUEPRINTS[k] : '2 engranajes'); }
+  showReport(r, rewards);
+  save();
+}
+function updateSiege(dt) {
+  const night = isNight();
+  if (night && !siege.active && stats.siegeDone !== dayCount && clock > 20) startSiege(dayCount);
+  if (!night && siege.active) endSiege();
+  if (!siege.active || !siege.queue.length || (siege.spawnT -= dt) > 0) return;
+  siege.spawnT = 2.5 + Math.random() * 2.5;
+  let alive = bots.length; for (const a of animals) if (a.siege && !a.dead) alive++;
+  if (alive >= 18) return;
+  const o = baseTarget() || player.pos, ga = siege.groups[(Math.random() * siege.groups.length) | 0];
+  const n = Math.min(siege.queue.length, 1 + (Math.random() * 3 | 0), 18 - alive);
+  for (let k = 0; k < n; k++) {
+    const sp = landSpot(o.x, o.z, ga, 70, 82) || landSpot(o.x, o.z, Math.random() * 6.283, 45, 75); if (!sp) break;
+    const t = siege.queue.shift();
+    if (t === 'wolf') { const w = spawnAnimal('wolf', sp[0], sp[1]); w.provoked = 600; w.siege = true; }
+    else { spawnBot(t, sp[0], sp[1], siege.night); if (t === 'boss') { sfx.horn(); showBanner('El Señor de la Guerra', 'Su escudo para los golpes de frente: rodéalo o usa explosivos.', true); } }
+  }
+}
+// proyectiles: virotes y obuses de torreta, bombas del jugador, flechas y antorchas enemigas
+const projs = [];
+const PROJ_GEO = { bolt: new THREE.CylinderGeometry(.03, .03, 1.1, 5).rotateX(Math.PI / 2), earrow: new THREE.CylinderGeometry(.015, .015, .8, 5).rotateX(Math.PI / 2), shell: new THREE.SphereGeometry(.2, 10, 8), bomb: new THREE.SphereGeometry(.16, 10, 8), etorch: new THREE.CylinderGeometry(.04, .04, .55, 6).rotateX(Math.PI / 2) };
+const PROJ_MAT = { bolt: BOT_MATS.wood, earrow: stdMat('#3a2a1a'), shell: BOT_MATS.dark, bomb: stdMat('#1f2224', { metalness: .3, roughness: .6 }), etorch: BOT_MATS.glow };
+const PROJ_G = { bolt: 2.45, earrow: 5.4, shell: 9.8, bomb: 9.8, etorch: 9.8 };
+function spawnProj(type, pos, vel, opts) {
+  const m = new THREE.Mesh(PROJ_GEO[type], PROJ_MAT[type]); m.castShadow = type !== 'etorch'; m.position.copy(pos); scene.add(m);
+  const pr = Object.assign({ type, m, pos: pos.clone(), vel: vel.clone(), life: 8, dmg: 10 }, opts || {}); projs.push(pr); return pr;
+}
+function removeProj(pr) { scene.remove(pr.m); const i = projs.indexOf(pr); if (i >= 0) projs.splice(i, 1); }
+function solidAt(p) { if (p.y < terrainH(p.x, p.z)) return { ground: true }; for (const c of colliders) if (p.x > c.minX && p.x < c.maxX && p.y > c.minY && p.y < c.maxY && p.z > c.minZ && p.z < c.maxZ) return c; return null; }
+const _sa = new THREE.Vector3(), _sb = new THREE.Vector3(), _sc = new THREE.Vector3(), _tgt = new THREE.Vector3();
+function segDist(a, b, c) { _sa.subVectors(b, a); const l = _sa.lengthSq() || 1e-6, t = clamp(_sb.subVectors(c, a).dot(_sa) / l, 0, 1); return _sc.copy(a).addScaledVector(_sa, t).distanceTo(c); }
+function updateProjs(dt) {
+  for (const pr of projs.slice()) {
+    pr.life -= dt;
+    if (pr.type === 'bomb' && (pr.fuse -= dt) <= 0) { removeProj(pr); explode(pr.pos.clone().setY(pr.pos.y + .2), pr.R, pr.dmg, { src: 'bomb', pieceMult: .5 }); continue; }
+    if (pr.stuck) { if (pr.life <= 0) removeProj(pr); continue; }
+    pr.vel.y -= PROJ_G[pr.type] * dt;
+    const np = pr.pos.clone().addScaledVector(pr.vel, dt);
+    let hit = false;
+    if (pr.type === 'bolt' || pr.type === 'shell') {
+      for (const b of bots) { _tgt.set(b.pos.x, b.pos.y + b.height * .55, b.pos.z); if (segDist(pr.pos, np, _tgt) < .5 * (b.def.scale || 1) + (pr.type === 'shell' ? .4 : 0)) { if (pr.type === 'bolt') hurtBot(b, pr.dmg, _tgt.clone(), 'turret', pr.pos); hit = true; break; } }
+    } else if (pr.type === 'earrow' || pr.type === 'etorch') {
+      _tgt.set(player.pos.x, player.pos.y + player.height * .62, player.pos.z);
+      if (player.hp > 0 && segDist(pr.pos, np, _tgt) < .45) { hurtPlayer(pr.dmg || 8, pr.type === 'etorch' ? 'fire' : 'arrow'); hit = true; }
+    }
+    const solid = hit ? null : solidAt(np);
+    if (pr.type === 'bomb') {
+      if (solid) { pr.vel.multiplyScalar(.45); if (solid.ground) { pr.vel.y = Math.abs(pr.vel.y) * .6; np.y = Math.max(np.y, terrainH(np.x, np.z) + .16); } else { pr.vel.x *= -1; pr.vel.z *= -1; np.copy(pr.pos); } }
+      pr.pos.copy(np); pr.m.position.copy(np); continue;
+    }
+    if (hit || solid || pr.life <= 0) {
+      if (pr.type === 'shell') { removeProj(pr); explode(hit ? np : pr.pos, pr.R, pr.dmg, { src: 'turret', pieceMult: .1 }); continue; }
+      if (pr.type === 'etorch') {
+        removeProj(pr); burst(pr.pos, 'fire', 6, 1.2);
+        if (solid && solid.piece) { siege.baseHitT = clock; if (ignite(solid.piece) && Math.hypot(pr.pos.x - player.pos.x, pr.pos.z - player.pos.z) < 40) toast('¡Te están quemando la base!', 'bad', undefined); damagePiece(solid.piece, 6); }
+        else if (solid && solid.dep) damageDep(solid.dep, 20);
+        continue;
+      }
+      if (hit || pr.life <= 0) { removeProj(pr); continue; }
+      pr.stuck = true; pr.life = Math.min(pr.life, 6); continue;
+    }
+    pr.pos.copy(np); pr.m.position.copy(np);
+    if (pr.type !== 'shell') pr.m.lookAt(_tgt.copy(np).add(pr.vel));
+  }
+}
+function shootAt(b, tx, ty, tz, dmg) {
+  const from = new THREE.Vector3(b.pos.x + Math.sin(b.yaw) * .5, b.pos.y + b.height * .8, b.pos.z + Math.cos(b.yaw) * .5);
+  const d = Math.hypot(tx - from.x, tz - from.z), err = d * .025, S = 34, t = Math.hypot(d, ty - from.y) / S;
+  const v = new THREE.Vector3((tx + (Math.random() - .5) * err * 2 - from.x) / t, (ty + (Math.random() - .5) * err - from.y) / t + .5 * PROJ_G.earrow * t, (tz + (Math.random() - .5) * err * 2 - from.z) / t);
+  spawnProj('earrow', from, v, { dmg, life: 7 }); if (d < 40) sfx.bow();
+}
+function throwAt(b, tx, ty, tz, dmg) {
+  const from = new THREE.Vector3(b.pos.x, b.pos.y + b.height * .9, b.pos.z), d = Math.hypot(tx - from.x, tz - from.z), T = .7 + d / 18;
+  spawnProj('etorch', from, new THREE.Vector3((tx - from.x) / T, (ty - from.y) / T + 9.8 * T / 2, (tz - from.z) / T), { dmg, life: 6 });
+  b.swing = 0; if (Math.hypot(b.pos.x - player.pos.x, b.pos.z - player.pos.z) < 40) sfx.swing();
+}
+function knockPlayer(fx, fz, k) { const dx = player.pos.x - fx, dz = player.pos.z - fz, d = Math.hypot(dx, dz) || 1; player.vel.x += dx / d * k; player.vel.z += dz / d * k; player.vel.y = Math.max(player.vel.y, 4.5); player.onGround = false; }
+function hitPlayer(b) { hurtPlayer(b.def.dmg * b.dmgMul, b.def.boss ? 'boss' : 'raider'); if (b.def.knock) knockPlayer(b.pos.x, b.pos.z, b.def.knock); }
+function hitStructure(b, o) {
+  const dmg = b.def.bdmg * b.dmgMul, c = objCenter(o);
+  raidBy = b;
+  if (o.boxes) damagePiece(o, dmg * (1 - BTIERS[o.tier].res)); else damageDep(o, dmg * .8);
+  raidBy = null;
+  if (Math.hypot(c.x - player.pos.x, c.z - player.pos.z) < 35) { const st = o.boxes && o.tier >= 2; (st ? sfx.stone : sfx.wood)(); burst(new THREE.Vector3(b.pos.x + Math.sin(b.yaw) * .7, b.pos.y + 1.2, b.pos.z + Math.cos(b.yaw) * .7), st ? 'stone' : 'wood', 4); }
+}
+function lightFuse(b) { if (b.fuse < 0) { b.fuse = 1.5; sfx.fire(); } }
+function bossSlam(b) {
+  const p = b.pos.clone().setY(b.pos.y + .3);
+  burst(p, 'stone', 16, 1.6); sfx.thud(); sfx.boom();
+  const dpl = Math.hypot(player.pos.x - b.pos.x, player.pos.z - b.pos.z);
+  camShake = Math.max(camShake, clamp(1 - dpl / 25, 0, .7));
+  if (dpl < 6.5 && Math.abs(player.pos.y - b.pos.y) < 2.5) { hurtPlayer(30 * b.dmgMul * (1 - dpl / 9), 'boss'); knockPlayer(b.pos.x, b.pos.z, 11); }
+  for (const pc of pieces.slice()) if (Math.hypot(pc.obj.position.x - b.pos.x, pc.obj.position.z - b.pos.z) < 4.5) damagePiece(pc, b.def.bdmg * (1 - BTIERS[pc.tier].res));
+  for (const d of deployables.slice()) if (Math.hypot(d.x - b.pos.x, d.z - b.pos.z) < 4.5) damageDep(d, b.def.bdmg * .6);
+}
+function updateBots(dt) {
+  updateSiege(dt);
+  const base = baseTarget(), alive = state === 'playing' && player.hp > 0;
+  for (const b of bots.slice()) {
+    if (!bots.includes(b)) continue;
+    const def = b.def, dxp = player.pos.x - b.pos.x, dzp = player.pos.z - b.pos.z, dP = Math.hypot(dxp, dzp) || .001, dyP = player.pos.y - b.pos.y;
+    b.aggroT -= dt; b.atk -= dt; b.rcd -= dt; b.think -= dt; b.losT -= dt;
+    const slowF = b.slow || 1; b.slow = 0;
+    let gx = null, gz = 0, sp = def.sp, hitObj = null, faceX = 0, faceZ = 0;
+    if (b.stun > 0) { b.stun -= dt; sp = 0; }
+    // zapador con la mecha encendida
+    if (b.fuse >= 0) {
+      sp = 0; b.fuse -= dt;
+      if (b.fuse <= 0) { b.exploded = true; const at = at1(b); killBot(b, false); explode(at, 4.8, 230 * b.dmgMul, { src: 'sapper', pieceMult: 1.4 }); continue; }
+    }
+    if (b.mode === 'retreat') {
+      const o = base || player.pos, ax = b.pos.x - o.x, az = b.pos.z - o.z, ad = Math.hypot(ax, az) || 1;
+      gx = b.pos.x + ax / ad * 10; gz = b.pos.z + az / ad * 10; sp *= 1.15;
+      if ((b.life -= dt) <= 0 || (ad > 85 && dP > 50)) { if (b.carry) toast('Un saqueador ha escapado con tu botín', 'bad'); killBot(b, false); continue; }
+    } else {
+      if (b.losT <= 0) { b.losT = .35 + Math.random() * .2; b.los = alive && dP < 40 && losClear(b.pos.x, b.pos.y + b.height * .85, b.pos.z, player.pos.x, player.pos.y + 1.5, player.pos.z); }
+      const range = def.ranged ? def.ranged.range : def.torch ? 14 : 10;
+      const hunt = alive && (!base || b.aggroT > 0 || (dP < range && b.los) || (dP < 3.5 && Math.abs(dyP) < 2));
+      if (hunt) {
+        gx = player.pos.x; gz = player.pos.z;
+        if (def.ranged && b.los && dP < def.ranged.range) {
+          sp = dP < def.ranged.keep - 4 ? -sp * .7 : dP < def.ranged.keep ? 0 : sp * .8; faceX = dxp; faceZ = dzp;
+          if (b.rcd <= 0 && b.stun <= 0) { b.rcd = def.ranged.cd * (.8 + Math.random() * .4); shootAt(b, player.pos.x, player.pos.y + 1.2, player.pos.z, def.ranged.dmg * b.dmgMul); }
+        } else if (def.torch && b.los && dP < def.torch.range && dP > 4 && b.rcd <= 0 && b.stun <= 0) { b.rcd = def.torch.cd; throwAt(b, player.pos.x, player.pos.y + .9, player.pos.z, 12 * b.dmgMul); }
+        else if (def.sapper) { if (dP < 2.2 && Math.abs(dyP) < 2) lightFuse(b); }
+        else if (dP < def.reach && Math.abs(dyP) < 1.7) { sp = 0; faceX = dxp; faceZ = dzp; if (b.atk <= 0 && b.stun <= 0 && !b.windup) { b.atk = def.cd; b.swing = 0; hitPlayer(b); } }
+      } else if (base) {
+        const chest = base.chest;
+        if (b.tgt && !objAlive(b.tgt)) b.tgt = null;
+        if (b.think <= 0) {
+          b.think = 1.5 + Math.random();
+          if (def.torch) b.tgt = nearestBurnable(b, base);
+          else if (Math.hypot(base.x - b.pos.x, base.z - b.pos.z) < 30 && (!b.tgt || b.tgt === chest)) {
+            const open = chest && losClear(b.pos.x, b.pos.y + 1, b.pos.z, chest.x, chest.y + .5, chest.z, chest);
+            b.tgt = open ? chest : pickBreach(b, base) || chest || null;
+            if (!b.tgt) b.aggroT = 30;
+          }
+        }
+        const tg = b.tgt || chest;
+        if (tg) { const c = objCenter(tg); gx = c.x; gz = c.z; } else { gx = base.x; gz = base.z; }
+        if (def.torch && b.tgt) {
+          const c = objCenter(b.tgt), dT = Math.hypot(c.x - b.pos.x, c.z - b.pos.z);
+          if (dT < def.torch.range) { sp = dT < 8 ? -sp * .5 : 0; faceX = c.x - b.pos.x; faceZ = c.z - b.pos.z; if (b.rcd <= 0 && b.stun <= 0) { b.rcd = def.torch.cd; throwAt(b, c.x, c.y + 1.6, c.z, 0); } }
+        } else if (tg && objDist(b, tg) < def.reach - .2) {
+          sp = 0; const c = objCenter(tg); faceX = c.x - b.pos.x; faceZ = c.z - b.pos.z;
+          if (def.sapper) lightFuse(b); else if (b.atk <= 0 && b.stun <= 0) { b.atk = def.cd; b.swing = 0; hitObj = tg; }
+        }
+      }
+      // habilidades del jefe: golpe de suelo y cuerno que llama refuerzos
+      if (def.boss) {
+        b.slamT -= dt; b.hornT -= dt;
+        if (b.windup > 0) { sp = 0; if ((b.windup -= dt) <= 0) { b.windup = 0; bossSlam(b); } }
+        else if (b.slamT <= 0 && dP < 5 && alive) { b.slamT = 7; b.windup = .8; sfx.creak(); }
+        if (b.hornT <= 0) {
+          b.hornT = 25; sfx.horn(); toast('¡El Señor de la Guerra llama a su horda!', 'bad');
+          for (let k = 0; k < 3; k++) { const s = landSpot(b.pos.x, b.pos.z, Math.random() * 6.283, 4, 9, 0); if (s && bots.length < 22) spawnBot('raider', s[0], s[1], siege.night); }
+        }
+      }
+    }
+    // movimiento: rodea el agua, se aparta de los demás y rompe lo que le bloquea
+    let mx = 0, mz = 0;
+    if (gx !== null && sp !== 0) { const ddx = gx - b.pos.x, ddz = gz - b.pos.z, dd = Math.hypot(ddx, ddz) || 1; mx = ddx / dd; mz = ddz / dd; }
+    if (sp < 0) { mx = -mx; mz = -mz; sp = -sp; }
+    if (b.detT > 0) { b.detT -= dt; const ca = Math.cos(1.2 * b.detS), sa = Math.sin(1.2 * b.detS); const nx = mx * ca - mz * sa; mz = mx * sa + mz * ca; mx = nx; }
+    if (sp > 0 && isWet(b.pos.x + mx * 2, b.pos.z + mz * 2)) { b.detT = .8; b.detS = b.detS || 1; const ca = Math.cos(1.2 * b.detS), sa = Math.sin(1.2 * b.detS); const nx = mx * ca - mz * sa; mz = mx * sa + mz * ca; mx = nx; if (isWet(b.pos.x + mx * 2, b.pos.z + mz * 2)) sp = 0; }
+    for (const o of bots) if (o !== b) { const sx = b.pos.x - o.pos.x, sz = b.pos.z - o.pos.z, sd = Math.hypot(sx, sz), R = b.radius + o.radius; if (sd < R && sd > 1e-3) { b.pos.x += sx / sd * (R - sd) * .5; b.pos.z += sz / sd * (R - sd) * .5; } }
+    { const sx = b.pos.x - player.pos.x, sz = b.pos.z - player.pos.z, sd = Math.hypot(sx, sz), R = b.radius + .4; if (sd < R && sd > 1e-3 && Math.abs(dyP) < 1.5) { b.pos.x += sx / sd * (R - sd); b.pos.z += sz / sd * (R - sd); } }
+    const px = b.pos.x, pz = b.pos.z, vsp = sp * slowF;
+    moveEntity(b, mx * vsp, mz * vsp, dt);
+    const moved = Math.hypot(b.pos.x - px, b.pos.z - pz);
+    b.mvx = (b.pos.x - px) / dt; b.mvz = (b.pos.z - pz) / dt;
+    if (vsp > 1.2 && moved < vsp * dt * .3) b.stuck += dt; else b.stuck = Math.max(0, b.stuck - dt * .5);
+    if (b.stuck > .6 && !hitObj && b.mode !== 'retreat') {
+      let best = null, bd = 1.7;
+      for (const c of colliders) { const o = c.piece || c.dep; if (!o) continue; if (c.maxY < b.pos.y + .3 || c.minY > b.pos.y + 1.6) continue; const dd = boxDist(b.pos.x, b.pos.z, c); if (dd < bd) { bd = dd; best = o; } }
+      if (best) { if (def.sapper) lightFuse(b); else if (b.atk <= 0 && b.stun <= 0) { b.atk = def.cd; b.swing = 0; hitObj = best; } faceX = mx; faceZ = mz; }
+      else if (b.stuck > 1.5) { b.stuck = 0; b.detT = 1.2; b.detS = Math.random() < .5 ? 1 : -1; }
+    }
+    if (hitObj) hitStructure(b, hitObj);
+    // animación
+    if (faceX || faceZ) b.yaw = lerpAngle(b.yaw, Math.atan2(faceX, faceZ), Math.min(1, dt * 10));
+    else if (moved > dt * .3) b.yaw = lerpAngle(b.yaw, Math.atan2(b.mvx, b.mvz), Math.min(1, dt * 8));
+    b.walk += moved;
+    b.g.position.copy(b.pos); b.g.rotation.y = b.yaw; b.g.rotation.z = b.stun > 0 ? Math.sin(clock * 20) * .06 : 0;
+    const sw = Math.sin(b.walk * 4.5) * Math.min(1, moved / dt / 3) * .6;
+    b.legL.rotation.x = sw; b.legR.rotation.x = -sw; b.armL.rotation.x = -sw * .5;
+    b.swing = Math.min(1, b.swing + dt * 3); b.arm.rotation.x = -Math.sin(b.swing * Math.PI) * 1.6;
+    if (def.ranged && b.los && dP < def.ranged.range && b.mode !== 'retreat') { b.armL.rotation.x = -1.5; b.arm.rotation.x = -1.4; }
+    if (b.windup > 0) b.arm.rotation.x = -2.8 * (1 - b.windup / .8);
+    if (b.fuseM) { b.fuseM.visible = b.fuse < 0 || Math.sin(clock * 30) > 0; b.fuseM.scale.setScalar(b.fuse >= 0 ? 2.2 : 1); }
+    b.flash = Math.max(0, b.flash - dt); b.torso.material = b.flash > 0 ? BOT_MATS.hit : b.baseMat;
+  }
+}
+// de noche cuando el sol está bajo el horizonte (misma curva que updateSky, sin depender del render)
+function isNight() { return dayPhase > .72 && Math.sin(Math.PI * (dayPhase - .72) / .28) * .7 > .02; }
 
 // ---------------------------------------------------------------- animales
 const animals = [];
@@ -1576,7 +2274,7 @@ function hurtAnimal(a, dmg, p) {
   if (a.dead) return;
   a.hp -= dmg; a.flash = .15; a.provoked = 14; sfx.animal(a.type); burst(p || a.pos.clone().setY(a.pos.y + .6), 'blood', 5);
   if (a.hp <= 0) {
-    a.dead = true; a.deadAt = clock; a.corpse = { hp: 60, acc: [0, 0] };
+    a.dead = true; a.deadAt = clock; a.corpse = { hp: 60, acc: [0, 0, 0] }; chEvent('hunt');
     // se tumba de lado girando sobre el centro del cuerpo, no sobre las patas
     a.dieT = 0;
     for (const l of a.legs) l.rotation.x = 0;
@@ -1589,7 +2287,7 @@ function butcher(a, tool, p) {
   const c = a.corpse, eff = tool.type === 'hand' ? .5 : tool.type === 'pick' ? .6 : 1;
   const dmg = Math.min(Math.max(tool.power, tool.dmg * .6) * eff, c.hp);
   c.hp -= dmg; const done = c.hp <= .001;
-  [['raw_meat', a.def.loot.meat], ['hide', a.def.loot.hide]].forEach(([id, total], i) => {
+  [['raw_meat', a.def.loot.meat], ['hide', a.def.loot.hide], ['fat', a.def.loot.fat || 0]].forEach(([id, total], i) => {
     c.acc[i] += total * dmg / 60; const whole = done ? Math.round(c.acc[i]) : Math.floor(c.acc[i]); c.acc[i] -= whole;
     if (whole > 0) giveItem(id, whole);
   });
@@ -1682,7 +2380,7 @@ function fireArrow(dmg, speed) {
   arrows.push({ m, pos: p, vel: dir.multiplyScalar(speed), life: 6, stuck: false, dmg });
 }
 const partGeo = new THREE.BoxGeometry(.09, .09, .09);
-const partMats = { wood: stdMat('#b58550'), stone: stdMat('#9a9b96'), leaf: stdMat('#5d8a37'), blood: stdMat('#9c2a22'), ore: stdMat('#d77a35'), water: stdMat('#cfeaf2', { transparent: true, opacity: .8 }), berry: stdMat('#b3243a') };
+const partMats = { fire: new THREE.MeshBasicMaterial({ color: new THREE.Color(6, 2.2, .5) }), wood: stdMat('#b58550'), stone: stdMat('#9a9b96'), leaf: stdMat('#5d8a37'), blood: stdMat('#9c2a22'), ore: stdMat('#d77a35'), water: stdMat('#cfeaf2', { transparent: true, opacity: .8 }), berry: stdMat('#b3243a') };
 const parts = [];
 for (let i = 0; i < 160; i++) { const m = new THREE.Mesh(partGeo, partMats.wood); m.visible = false; m.castShadow = true; scene.add(m); parts.push({ m, v: new THREE.Vector3(), av: 0, life: 0 }); }
 let partIdx = 0;
@@ -1691,7 +2389,8 @@ function burst(p, mat, n, size) {
     const q = parts[partIdx++ % parts.length]; q.m.material = partMats[mat]; q.m.visible = true; q.m.position.copy(p);
     q.m.scale.setScalar((size || 1) * (.5 + Math.random() * 1.1));
     q.v.set((Math.random() - .5) * 4.5, 2 + Math.random() * 3.5, (Math.random() - .5) * 4.5); q.av = (Math.random() - .5) * 16;
-    q.life = (size ? 1.6 : .7) + Math.random() * .5;
+    q.life = (size ? 1.6 : .7) + Math.random() * .5; q.float = mat === 'fire';
+    if (q.float) { q.v.multiplyScalar(.35); q.v.y = 1 + Math.random() * 1.5; q.life = .45 + Math.random() * .4; q.m.castShadow = false; } else q.m.castShadow = true;
   }
 }
 // trozos de construcciones que se derrumban
@@ -1728,6 +2427,12 @@ const sfx = {
   bad() { tn(180, .15, .12, 'square', 140); },
   creak() { tn(140, .9, .12, 'sawtooth', 70); nz(.6, 300, 4, .12); },
   thud() { nz(.5, 180, 1, .7, 'lowpass'); tn(60, .45, .4, 'sine', 35); },
+  boom() { nz(1.2, 160, .8, 1, 'lowpass'); nz(.4, 900, .6, .4); tn(55, .8, .5, 'sine', 30); },
+  fire() { nz(.5, 1200, .5, .12); },
+  flame() { nz(.3, 800, .4, .08); },
+  clank() { tn(900, .08, .2, 'square', 500); nz(.1, 3000, 2, .2); },
+  bell() { for (let i = 0; i < 3; i++) setTimeout(() => { tn(660, 1.2, .2, 'sine'); tn(1320, .8, .08, 'sine'); }, i * 450); },
+  horn() { tn(110, 2, .35, 'sawtooth', 98); tn(165, 2, .2, 'sawtooth', 147); },
   thunder() { nz(2.8, 110, .7, .9, 'lowpass'); nz(1.3, 420, .5, .35); },
   drink() { for (let i = 0; i < 3; i++) setTimeout(() => tn(260 + Math.random() * 220, .07, .1, 'sine', 140), i * 90); },
   eat() { nz(.07, 1800, 1, .3); setTimeout(() => nz(.07, 1500, 1, .25), 110); },
@@ -1737,7 +2442,7 @@ const sfx = {
 };
 
 // ---------------------------------------------------------------- UI
-const ui = { stam: $('#stambar'), stamW: $('#stamwrap'), under: $('#under'), food: $('#foodbar'), drink: $('#drinkbar'), foodW: $('#foodwrap'), drinkW: $('#drinkwrap'), air: $('#airbar'), airW: $('#airwrap'), hint: $('#hint'), hot: $('#hotbar'), slots: $('#slots'), recipes: $('#recipes'), stations: $('#stations'), queue: $('#queue'), toasts: $('#toasts'), hp: $('#hpbar'), hurt: $('#hurt'), itemname: $('#itemname'), build: $('#buildbar'), pieces: $('#pieces'), objTxt: $('#objTxt'), objSub: $('#objSub'), objLab: $('#objLab'), clockT: $('#clockT'), clockN: $('#clockN') };
+const ui = { bossBar: $('#bossbar'), bossHp: $('#bossHp'), cslots: $('#cslots'), chestSec: $('#chestSec'), challenges: $('#challenges'), slotTip: $('#slotTip'), stam: $('#stambar'), stamW: $('#stamwrap'), under: $('#under'), food: $('#foodbar'), drink: $('#drinkbar'), foodW: $('#foodwrap'), drinkW: $('#drinkwrap'), air: $('#airbar'), airW: $('#airwrap'), hint: $('#hint'), hot: $('#hotbar'), slots: $('#slots'), recipes: $('#recipes'), stations: $('#stations'), queue: $('#queue'), toasts: $('#toasts'), hp: $('#hpbar'), hurt: $('#hurt'), itemname: $('#itemname'), build: $('#buildbar'), pieces: $('#pieces'), objTxt: $('#objTxt'), objSub: $('#objSub'), objLab: $('#objLab'), clockT: $('#clockT'), clockN: $('#clockN') };
 function slotHTML(s, i, hot) {
   let h = hot ? `<span class="k">${i + 1}</span>` : '';
   if (s) {
@@ -1754,23 +2459,29 @@ function renderHotbar() {
   ui.hot.innerHTML = h;
   const s = inv.slots[sel]; ui.itemname.textContent = buildMode ? '' : s ? ITEMS[s.id].name : 'Puños';
 }
-let picked = -1, panelSig = '';
+let picked = -1, panelSig = '', chestOpen = null;
 function renderPanel(force) {
   if (!panelOpen) return;
-  const sig = [inv.version, picked, hasStation('workbench'), hasStation('furnace'), hasStation('campfire'), queue.length].join('|');
+  const sig = [inv.version, picked, hasStation('workbench'), hasStation('furnace'), hasStation('campfire'), queue.length, chestOpen ? chestOpen.inv.version : -1, Object.keys(stats.bp || {}).length, challenges.list.map((c) => c.prog).join(',')].join('|');
   if (!force && sig === panelSig) return; panelSig = sig;
   let h = ''; for (let i = 0; i < inv.slots.length; i++) h += `<div class="slot${i < 6 ? ' hot' : ''}${i === picked ? ' pick' : ''}" data-i="${i}" title="${inv.slots[i] ? ITEMS[inv.slots[i].id].name : ''}">${slotHTML(inv.slots[i], i, i < 6)}</div>`;
   ui.slots.innerHTML = h;
+  ui.chestSec.hidden = !chestOpen;
+  ui.slotTip.textContent = chestOpen ? 'Haz clic en un objeto para guardarlo en el Arcón.' : 'Haz clic en un objeto y después en otra casilla para moverlo. Las 6 casillas de arriba son tu barra rápida (teclas 1–6).';
+  if (chestOpen) { let c = ''; for (let i = 0; i < chestOpen.inv.slots.length; i++) c += `<div class="slot" data-c="${i}">${slotHTML(chestOpen.inv.slots[i], i, false)}</div>`; ui.cslots.innerHTML = c; }
+  ui.challenges.innerHTML = challenges.list.map((c) => `<div class="ch${c.done ? ' done' : ''}"><span>${c.t}</span><span class="n">${c.done ? 'Hecho' : Math.min(c.prog, c.n) + '/' + c.n}</span><span class="pb"><i style="width:${Math.min(1, c.prog / c.n) * 100}%"></i></span></div>`).join('') || '<p class="tip">Sin retos.</p>';
   const st = { workbench: hasStation('workbench'), furnace: hasStation('furnace'), campfire: hasStation('campfire') };
   ui.stations.innerHTML = `<span class="chip on">Mano</span><span class="chip${st.workbench ? ' on' : ''}">Banco de trabajo${st.workbench ? '' : ' (lejos)'}</span><span class="chip${st.furnace ? ' on' : ''}">Horno${st.furnace ? '' : ' (lejos)'}</span><span class="chip${st.campfire ? ' on' : ''}">Hoguera${st.campfire ? '' : ' (lejos)'}</span>`;
   let r = '', lastTier = -1;
   for (const rc of RECIPES) {
     if (rc.tier !== lastTier) { r += `<div class="tierh">Edad ${TIER_NAMES[rc.tier]}</div>`; lastTier = rc.tier; }
     const missStation = rc.station && !st[rc.station];
-    const can = inv.has(rc.cost) && !missStation && queue.length < 10;
+    const noBp = rc.bp && !(stats.bp && stats.bp[rc.bp]);
+    const can = inv.has(rc.cost) && !missStation && !noBp && queue.length < 10;
     const costs = Object.keys(rc.cost).map((k) => `<span class="${inv.count(k) < rc.cost[k] ? 'miss' : ''}">${rc.cost[k]} ${ITEMS[k].name.toLowerCase()}</span>`).join('');
     const can5 = can && inv.has(Object.fromEntries(Object.entries(rc.cost).map(([k, v]) => [k, v * 5]))) && queue.length <= 5;
-    r += `<div class="rec${missStation ? ' lock' : ''}"><div class="ic">${iconFor(rc.out)}</div><div style="min-width:0"><div class="nm">${ITEMS[rc.out].name}${rc.n > 1 ? ` <small>×${rc.n}</small>` : ''}</div><div class="cost">${costs}</div><div class="rq${missStation ? ' miss' : ''}">${rc.station ? 'Necesita ' + STATION_NAMES[rc.station].toLowerCase() + ' cerca' : 'Se fabrica a mano'} · ${rc.time}s</div></div><div class="bt"><button type="button" data-r="${rc.id}" data-n="1" ${can ? '' : 'disabled'}>Fabricar</button>${rc.id === 'ingot' || rc.id === 'arrow' || rc.id === 'bandage' || rc.id === 'cooked_meat' ? `<button type="button" data-r="${rc.id}" data-n="5" ${can5 ? '' : 'disabled'}>×5</button>` : ''}</div></div>`;
+    const rq = noBp ? 'Necesitas el plano: búscalo en cajas de suministros o derrota a enemigos de élite' : (rc.station ? 'Necesita ' + STATION_NAMES[rc.station].toLowerCase() + ' cerca' : 'Se fabrica a mano') + ' · ' + rc.time + 's';
+    r += `<div class="rec${missStation || noBp ? ' lock' : ''}"><div class="ic">${noBp ? BP_ICON : iconFor(rc.out)}</div><div style="min-width:0"><div class="nm">${ITEMS[rc.out].name}${rc.n > 1 ? ` <small>×${rc.n}</small>` : ''}</div><div class="cost">${costs}</div><div class="rq${missStation || noBp ? ' miss' : ''}">${rq}</div></div><div class="bt"><button type="button" data-r="${rc.id}" data-n="1" ${can ? '' : 'disabled'}>Fabricar</button>${MULTI.has(rc.id) ? `<button type="button" data-r="${rc.id}" data-n="5" ${can5 ? '' : 'disabled'}>×5</button>` : ''}</div></div>`;
   }
   ui.recipes.innerHTML = r;
 }
@@ -1783,11 +2494,62 @@ function toast(text, kind, key) {
   if (key) toastMap.set(key, t); else toastMap.set(Symbol(), t);
   while (ui.toasts.children.length > 6) ui.toasts.removeChild(ui.toasts.firstChild);
 }
+let bannerT = 0, reportT = 0;
+function showBanner(t, sub, blood) { $('#bannerT').textContent = t; $('#bannerS').textContent = sub || ''; const el = $('#banner'); el.hidden = false; el.style.opacity = 1; el.classList.toggle('blood', !!blood); bannerT = 7; }
+function showReport(r, rewards) {
+  const el = $('#report'), hurt = r.lost > 0 || r.raided;
+  el.innerHTML = `<div class="lab">Amanecer · Noche ${r.night}${r.blood ? ' · Luna de sangre' : ''}</div><h3>${r.hadBase && hurt ? 'Has aguantado' : 'Has resistido'}</h3>` +
+    `<div class="row"><span>Errantes abatidos</span><b>${r.kills}</b></div>` +
+    (r.hadBase ? `<div class="row"><span>Piezas y objetos perdidos</span><b class="${r.lost ? 'bad' : ''}">${r.lost}</b></div><div class="row"><span>Arcón</span><b class="${r.raided ? 'bad' : ''}">${r.raided ? 'Saqueado' : 'Intacto'}</b></div>` : '') +
+    `<div class="row"><span>Mejor noche</span><b>${stats.bestNight || r.night}</b></div>` +
+    (rewards.length ? `<div class="rw">${rewards.join(' · ')}</div>` : '') +
+    `<div class="x">${isBloodNight(r.night + 1) ? 'La próxima noche habrá luna de sangre.' : 'La próxima noche vendrán más.'} Repara con el martillo y refuerza los muros.</div>`;
+  el.hidden = false; reportT = 12; sfx.craft();
+}
+function updateBanners(dt) {
+  if (bannerT > 0) { bannerT -= dt; const el = $('#banner'); el.style.opacity = clamp(bannerT, 0, 1); if (bannerT <= 0) el.hidden = true; }
+  if (reportT > 0 && (reportT -= dt) <= 0) $('#report').hidden = true;
+  const bb = siege.boss, show = !!bb && Math.hypot(bb.pos.x - player.pos.x, bb.pos.z - player.pos.z) < 90;
+  if (ui.bossBar.hidden === show) ui.bossBar.hidden = !show;
+  if (show) ui.bossHp.style.width = Math.max(0, bb.hp / bb.maxHp * 100) + '%';
+}
+function recordsText() { return stats.bestNight ? `Récord: noche ${stats.bestNight} · ${stats.kills || 0} Errantes abatidos${stats.bosses ? ' · ' + stats.bosses + (stats.bosses > 1 ? ' jefes' : ' jefe') : ''}` : ''; }
 function updateToasts() { const now = performance.now(); for (const [k, t] of toastMap) if (now > t.until) { t.el.remove(); toastMap.delete(k); } }
 function giveItem(id, n) {
   const over = inv.add(id, n); const got = n - over;
   if (got > 0) { toast(ITEMS[id].name, got, 'g:' + id); stats.got[id] = (stats.got[id] || 0) + got; }
   if (over > 0) toast(`Mochila llena: pierdes ${over} ${ITEMS[id].name.toLowerCase()}`, 'bad');
+}
+
+// ---------------------------------------------------------------- retos diarios (cambian cada día real)
+const CH_POOL = [
+  { ev: 'kill', t: 'Abate {n} enemigos', n: 15 }, { ev: 'kill:torcher', t: 'Abate {n} incendiarios', n: 3 }, { ev: 'kill:brute', t: 'Abate {n} brutos', n: 2 },
+  { ev: 'kill:archer', t: 'Abate {n} arqueros', n: 4 }, { ev: 'kill:sapper', t: 'Abate {n} zapadores antes de que exploten', n: 3 }, { ev: 'trap', t: 'Atrapa {n} enemigos con cepos o estacas', n: 5 },
+  { ev: 'noloss', t: 'Sobrevive a un asedio sin perder ninguna pieza', n: 1 }, { ev: 'crate', t: 'Abre {n} cajas de suministros', n: 2 }, { ev: 'hunt', t: 'Caza {n} animales', n: 3 },
+  { ev: 'repair', t: 'Repara {n} veces con el martillo', n: 6 }, { ev: 'harvest', t: 'Cosecha tu huerto', n: 1 }, { ev: 'turretkill', t: 'Abate {n} enemigos con torretas o trampas', n: 6 },
+];
+const CH_REWARDS = [[['ingot', 6]], [['gunpowder', 5]], [['gear', 2]], [['arrow', 25]], [['cooked_meat', 5], ['bandage', 3]], [['sulfur', 12], ['charcoal', 12]]];
+let challenges = { date: '', list: [] };
+function dailyChallenges() {
+  const date = new Date().toISOString().slice(0, 10); if (challenges.date === date) return;
+  let seed = 0; for (const ch of date) seed = (seed * 31 + ch.charCodeAt(0)) | 0;
+  const r = mulberry32(seed), pool = CH_POOL.slice(), list = [];
+  while (list.length < 3) { const c = pool.splice(Math.floor(r() * pool.length), 1)[0]; list.push({ ev: c.ev, n: c.n, t: c.t.replace('{n}', c.n), prog: 0, done: false, rw: Math.floor(r() * CH_REWARDS.length) }); }
+  challenges = { date, list };
+}
+function chEvent(ev, n) {
+  for (const c of challenges.list) {
+    if (c.done || c.ev !== ev) continue;
+    c.prog += n || 1;
+    if (c.prog >= c.n) { c.done = true; toast('Reto completado: ' + c.t, 'info'); sfx.craft(); for (const [id, k] of CH_REWARDS[c.rw]) giveItem(id, k); }
+  }
+}
+function grantBlueprint() {
+  stats.bp = stats.bp || {};
+  const left = Object.keys(BLUEPRINTS).filter((k) => !stats.bp[k]);
+  if (!left.length) { giveItem('gear', 2); return null; }
+  const k = left[Math.floor(Math.random() * left.length)]; stats.bp[k] = true;
+  toast('¡Plano conseguido: ' + BLUEPRINTS[k] + '!', 'info'); sfx.craft(); renderPanel(true); return k;
 }
 
 // cola de fabricación (port del CraftingQueue.cs)
@@ -1797,6 +2559,7 @@ function enqueue(id, times) {
   for (let k = 0; k < times; k++) {
     if (queue.length >= 10) { toast('La cola de fabricación está llena', 'bad'); break; }
     if (rc.station && !hasStation(rc.station)) { toast('Necesitas estar junto a: ' + STATION_NAMES[rc.station], 'bad'); break; }
+    if (rc.bp && !(stats.bp && stats.bp[rc.bp])) { toast('Necesitas el plano de ' + BLUEPRINTS[rc.bp].toLowerCase(), 'bad'); break; }
     if (!inv.pay(rc.cost)) { toast('Te faltan materiales', 'bad'); break; }
     queue.push({ rc, left: rc.time });
   }
@@ -1827,10 +2590,16 @@ const OBJECTIVES = [
   { t: 'Explora: abre el mapa con M, descubre unas ruinas o un campamento y abre su caja de suministros.', ok: () => (stats.crates || 0) >= 1 },
   { t: 'Pulsa B para construir y coloca un cimiento en el suelo.', ok: () => stats.placed.foundation },
   { t: 'Levanta 3 paredes y una puerta sobre los cimientos (teclas 2 y 3 en modo construcción).', ok: () => (stats.placed.wall || 0) >= 3 && (stats.placed.door || 0) >= 1 },
+  { t: 'Fabrica un Arcón en el banco de trabajo y colócalo dentro de tu casa. Guarda ahí lo valioso: de noche los Errantes vendrán a por él.', ok: () => stats.placed.chest },
   { t: 'Mejora una pieza: en modo construcción, apunta a ella y pulsa E.', ok: () => stats.upgraded >= 1 },
+  { t: 'Defiende la entrada: coloca estacas, un cepo o una empalizada delante de la puerta.', ok: () => stats.placed.spikes || stats.placed.beartrap || stats.placed.palisade },
+  { t: 'Sobrevive a un asedio: cuando caiga la noche, defiende el Arcón hasta el amanecer.', ok: () => (stats.nightsSurvived || 0) >= 1 },
   { t: 'Ve a la montaña y saca 10 de mineral de hierro con el pico de piedra.', ok: () => (stats.got.ore || 0) >= 10, dir: MOUNT },
   { t: 'Fabrica un horno junto al banco y funde 5 lingotes de hierro.', ok: () => (stats.crafted.ingot || 0) >= 5 },
   { t: 'Forja un hacha de hierro en el banco de trabajo.', ok: () => stats.crafted.iron_axe },
+  { t: 'Fabrica un martillo y repara una pieza dañada después de un asedio (clic con el martillo).', ok: () => (stats.repairs || 0) >= 1 },
+  { t: 'Abre la caja del faro para conseguir el plano de la ballesta y coloca una torreta. Cárgala con E.', ok: () => stats.placed.ballista || stats.placed.flamer || stats.placed.mortar, dir: () => POIS.find((q) => q.type === 'lighthouse'), dirLab: 'El faro está a ' },
+  { t: 'Sobrevive a la luna de sangre (cada 7 noches) y abate al Señor de la Guerra.', ok: () => (stats.bosses || 0) >= 1 },
 ];
 function nearestLake() { let b = null, bd = 1e9; for (const L of LAKES) { const d = Math.hypot(L.x - player.pos.x, L.z - player.pos.z); if (d < bd) { bd = d; b = L; } } return b; }
 function bearing(tx, tz) {
@@ -1841,11 +2610,11 @@ function bearing(tx, tz) {
 }
 function updateObjective() {
   while (objIndex < OBJECTIVES.length && OBJECTIVES[objIndex].ok()) { objIndex++; if (objIndex < OBJECTIVES.length) { toast('Objetivo completado', 'info'); sfx.craft(); } }
-  if (objIndex >= OBJECTIVES.length) { ui.objLab.textContent = 'Edad del hierro'; ui.objTxt.textContent = 'Has llegado al hierro. Refuerza tu base con piedra y metal y sobrevive a las noches.'; ui.objSub.textContent = `Saqueadores abatidos: ${stats.kills}`; return; }
+  if (objIndex >= OBJECTIVES.length) { ui.objLab.textContent = 'Señor de la isla'; ui.objTxt.textContent = 'Has completado la historia. Cada noche llegan más Errantes: ¿hasta qué noche aguantarás?'; ui.objSub.textContent = recordsText(); return; }
   const o = OBJECTIVES[objIndex];
   ui.objLab.textContent = `Objetivo ${objIndex + 1} de ${OBJECTIVES.length}`; ui.objTxt.textContent = o.t;
   const od = typeof o.dir === 'function' ? o.dir() : o.dir;
-  ui.objSub.textContent = od ? (o.dir === MOUNT ? 'La montaña está a ' : 'El lago más cercano está a ') + bearing(od.x, od.z) : (isNight() ? 'Es de noche: ponte a cubierto.' : '');
+  ui.objSub.textContent = od ? (o.dirLab || (o.dir === MOUNT ? 'La montaña está a ' : 'El lago más cercano está a ')) + bearing(od.x, od.z) : (siege.active ? 'Asedio en curso: defiende el Arcón.' : '');
 }
 
 // ---------------------------------------------------------------- estado, entrada
@@ -1900,34 +2669,47 @@ addEventListener('keyup', (e) => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseL = mouseR = false; });
 
 function togglePanel() {
-  panelOpen = !panelOpen; $('#panel').hidden = !panelOpen; picked = -1;
+  panelOpen = !panelOpen; $('#panel').hidden = !panelOpen; picked = -1; if (!panelOpen) chestOpen = null;
   if (panelOpen) { mouseL = false; renderPanel(true); if (locked) document.exitPointerLock(); }
   else if (!fallbackLook) requestLock();
 }
 $('#closePanel').addEventListener('click', togglePanel);
+ui.cslots.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-c]'); if (!el || !chestOpen) return; const i = +el.dataset.c, s = chestOpen.inv.slots[i]; if (!s) return;
+  const over = inv.add(s.id, s.n, s.dur); if (over === s.n) { toast('Mochila llena', 'bad'); return; }
+  if (over > 0) s.n = over; else chestOpen.inv.slots[i] = null; chestOpen.inv.touch(); renderPanel(true);
+});
 ui.slots.addEventListener('click', (e) => {
   const el = e.target.closest('[data-i]'); if (!el) return; const i = +el.dataset.i;
+  if (chestOpen) {
+    const s = inv.slots[i]; if (!s) return;
+    const over = chestOpen.inv.add(s.id, s.n, s.dur); if (over === s.n) { toast('El Arcón está lleno', 'bad'); return; }
+    if (over > 0) s.n = over; else inv.slots[i] = null; inv.touch(); renderPanel(true); return;
+  }
   if (picked < 0) { if (inv.slots[i]) picked = i; } else { inv.move(picked, i); picked = -1; }
   renderPanel(true);
 });
 ui.recipes.addEventListener('click', (e) => { const b = e.target.closest('button[data-r]'); if (!b || b.disabled) return; audio(); enqueue(b.dataset.r, +b.dataset.n); });
 
 function startGame() {
-  $('#menu').hidden = true; $('#pause').hidden = true; $('#hud').hidden = false; state = 'playing'; audio(); ambientStart();
+  $('#menu').hidden = true; $('#pause').hidden = true; $('#hud').hidden = false; state = 'playing'; audio(); ambientStart(); dailyChallenges(); renderPanel(true);
   if (!fallbackLook) requestLock();
 }
-function pauseGame() { if (state !== 'playing') return; state = 'paused'; mouseL = false; $('#pause').hidden = false; $('#resetConfirm').hidden = true; save(); }
+function pauseGame() { if (state !== 'playing') return; state = 'paused'; mouseL = false; $('#pause').hidden = false; $('#resetConfirm').hidden = true; $('#records2').textContent = recordsText(); save(); }
 $('#btnPlay').addEventListener('click', startGame);
 $('#btnResume').addEventListener('click', startGame);
 let resetArmed = false;
 function resetGame() { if (!resetArmed) { resetArmed = true; $('#resetConfirm').hidden = false; return; } try { localStorage.removeItem(SAVE_KEY); } catch (e) {} location.reload(); }
 $('#btnReset').addEventListener('click', resetGame);
 $('#btnNew').addEventListener('click', () => { resetArmed = true; resetGame(); });
+function respawnBed() { const d = deployables[stats.bedIdx]; return d && d.t === 'bed' ? d : deployables.find((q) => q.t === 'bed'); }
 $('#btnRespawn').addEventListener('click', () => {
-  player.hp = 100; player.hunger = Math.max(player.hunger, 70); player.thirst = Math.max(player.thirst, 70); player.air = 1; player.pos.set(SPAWN.x, terrainH(SPAWN.x, SPAWN.z) + .1, SPAWN.z); player.vel.set(0, 0, 0);
+  player.hp = 100; player.hunger = Math.max(player.hunger, 70); player.thirst = Math.max(player.thirst, 70); player.air = 1; player.vel.set(0, 0, 0);
+  const bed = respawnBed();
+  if (bed) player.pos.set(bed.x, bed.y + .7, bed.z); else player.pos.set(SPAWN.x, terrainH(SPAWN.x, SPAWN.z) + .1, SPAWN.z);
   for (const a of animals.slice()) if (!a.dead && a.def.temper !== 'flee' && Math.hypot(a.pos.x - SPAWN.x, a.pos.z - SPAWN.z) < 60) removeAnimal(a);
-  for (const b of bots.slice()) if (Math.hypot(b.pos.x - SPAWN.x, b.pos.z - SPAWN.z) < 60) killBot(b, false);
-  $('#death').hidden = true; botTimer = 45; startGame();
+  if (!bed) for (const b of bots.slice()) if (Math.hypot(b.pos.x - SPAWN.x, b.pos.z - SPAWN.z) < 60) killBot(b, false);
+  $('#death').hidden = true; startGame();
 });
 
 // ---------------------------------------------------------------- apuntado y acciones
@@ -2005,16 +2787,30 @@ function primaryAction() {
       else toast('Apunta a un lago para llenar el odre', 'info');
       return;
     }
+    if (aim && aim.kind === 'piece' && aim.piece.burn > 0 && aim.d < 4.5) { aim.piece.burn = 0; burning.delete(aim.piece); s.dur--; if (s.dur <= 0) inv.slots[sel] = { id: 'waterskin', n: 1, dur: 0 }; inv.touch(); sfx.splash(); toast('Fuego apagado', 'info'); return; }
     if (player.thirst > 97) { toast('No tienes sed', 'info'); return; }
     player.thirst = Math.min(100, player.thirst + 25); s.dur--; sfx.drink(); stats.drank = (stats.drank || 0) + 1;
     if (s.dur <= 0) inv.slots[sel] = { id: 'waterskin', n: 1, dur: 0 };
     inv.touch(); toast('Agua', 25, 'w:drink');
     return;
   }
+  if (it && it.armor) {
+    if (!clickQueued) return;
+    const prev = player.armorId; player.armorId = s.id; inv.slots[sel] = null; inv.touch(); if (prev) giveItem(prev, 1);
+    toast('Te pones: ' + it.name + ` (−${Math.round(it.armor * 100)}% de daño)`, 'info'); sfx.craft(); nextAction = clock + .5; return;
+  }
+  if (it && it.throwable) {
+    if (!clickQueued) return;
+    const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
+    spawnProj('bomb', camera.position.clone().addScaledVector(dir, .6), dir.multiplyScalar(17).add(new THREE.Vector3(0, 3.5, 0)), { dmg: 150, R: 4.5, owner: 'player', fuse: 2.2 });
+    inv.takeOne(sel); sfx.swing(); swingT = 0; nextAction = clock + .8; return;
+  }
   if (it && it.deploy) return;
   const { it: tit } = heldTool(); const tool = tit.tool; const tier = tit.tier || 0;
   nextAction = clock + tool.cd; swingT = 0; sfx.swing();
   const a = aim; if (!a || a.d > tool.range) return;
+  if (tool.type === 'hammer' && (a.kind === 'piece' || a.kind === 'dep')) { repairTarget(a); if (s && inv.wear(sel, 1)) toast('El martillo se ha roto', 'bad'); return; }
+  if (a.kind === 'dep' && a.dep.t === 'barrel') { damageDep(a.dep, tool.dmg); return; }
   if (a.kind === 'node') {
     const r = harvest(a.n, tool, tier);
     if (r.st === 'tier') { toast(`Necesitas ${a.n.def.better} para la ${a.n.def.name.toLowerCase()}`, 'bad'); sfx.bad(); return; }
@@ -2031,11 +2827,6 @@ function primaryAction() {
     if (s && maxDur(s.id) && inv.wear(sel, 1)) toast(ITEMS[s.id].name + ' se ha roto', 'bad');
   }
 }
-function hurtBot(b, dmg, p) {
-  b.hp -= dmg; b.flash = .15; b.state = 'chase'; sfx.hit(); burst(p || b.pos, 'blood', 5);
-  const dx = b.pos.x - player.pos.x, dz = b.pos.z - player.pos.z, d = Math.hypot(dx, dz) || 1; b.pos.x += dx / d * .4; b.pos.z += dz / d * .4;
-  if (b.hp <= 0) killBot(b, true);
-}
 function interact() {
   const a = aim;
   const useful = a && a.d <= 3.5 && (a.kind === 'piece' || a.kind === 'dep' || a.kind === 'crate');
@@ -2051,7 +2842,7 @@ function interact() {
   if (a.kind === 'piece' && a.piece.kind === 'door') {
     const p = a.piece; p.open = !p.open; rebuildColliders(); sfx.wood(); return;
   }
-  if (a.kind === 'dep') { if (!panelOpen) togglePanel(); }
+  if (a.kind === 'dep') useDeployable(a.dep);
   if (a.kind === 'crate') openCrate(a.crate);
 }
 function demolish() {
@@ -2144,7 +2935,7 @@ function computeBuildPlacement() {
 function computeDeployPlacement(type) {
   const hit = placementPoint(5); if (!hit) return null;
   const x = hit.p.x, z = hit.p.z, y = groundAt(x, z, hit.p.y + .3);
-  const r = depRot * Math.PI / 2, mdl = type === 'workbench' ? [.9, .45] : type === 'campfire' ? [.6, .6] : [.65, .65], swap = depRot % 2 === 1, hx = swap ? mdl[1] : mdl[0], hz = swap ? mdl[0] : mdl[1];
+  const r = depRot * Math.PI / 2, mdl = DEP_DEFS[type].half, swap = depRot % 2 === 1, hx = swap ? mdl[1] : mdl[0], hz = swap ? mdl[0] : mdl[1];
   const res = { dep: type, x, y, z, r, ok: true, why: '' };
   if (y < .3 || isWet(x, z)) { res.ok = false; res.why = 'No se puede colocar en el agua'; }
   else if (obstacleIn(x - hx, x + hx, z - hz, z + hz)) { res.ok = false; res.why = 'Hay un obstáculo'; }
@@ -2177,7 +2968,8 @@ function tryPlace() {
   if (!placement.ok) { toast(placement.why, 'bad'); sfx.bad(); return true; }
   if (placement.dep) {
     const s = inv.slots[sel]; if (!s) return true;
-    addDeployable({ t: placement.dep, x: placement.x, y: placement.y, z: placement.z, r: placement.r });
+    const nd = { t: placement.dep, x: placement.x, y: placement.y, z: placement.z, r: placement.r }; addDeployable(nd);
+    if (nd.t === 'bed') toast('Reaparecerás en esta cama', 'info');
     inv.takeOne(sel); stats.placed[placement.dep] = (stats.placed[placement.dep] || 0) + 1; sfx.build(); return true;
   }
   if (!inv.pay(placement.cost)) return true;
@@ -2203,19 +2995,33 @@ function updateHint() {
   } else if (a && a.kind === 'piece' && a.d < 4) {
     const p = a.piece;
     h = `<span>${PIECES[p.kind].name} de ${BTIERS[p.tier].name.toLowerCase()}</span><span class="bar"><i style="width:${p.hp / p.maxHp * 100}%"></i></span>`;
+    if (p.burn > 0) h += '<span class="warn">¡En llamas! Apágalo con un odre o espera a la lluvia</span>';
+    const hs = inv.slots[sel]; if (!buildMode && hs && hs.id === 'hammer' && p.hp < p.maxHp) { const c = {}; const full = pieceCost(p.kind, p.tier); for (const k in full) c[k] = Math.max(1, Math.ceil(full[k] * .15)); h += `<span><span class="key">Clic</span>Reparar (${costText(c)})</span>`; }
     if (buildMode) h += p.tier < 3 ? `<span><span class="key">E</span>Mejorar a ${BTIERS[p.tier + 1].name.toLowerCase()} (${costText(pieceCost(p.kind, p.tier + 1))})</span>` : '<span>Nivel máximo</span>';
     else if (p.kind === 'door') h += `<span><span class="key">E</span>${p.open ? 'Cerrar' : 'Abrir'}</span>`;
     if (buildMode && placement && !placement.ok) h += `<span class="warn">${placement.why}</span>`;
   } else if (a && a.kind === 'crate' && a.d < 3.5) {
     h = clock < a.crate.readyAt ? '<span>Caja de suministros</span><span class="warn">Vacía · vuelve más tarde</span>' : '<span>Caja de suministros</span><span><span class="key">E</span>Abrir</span>';
-  } else if (a && a.kind === 'dep' && a.d < 3.5) {
+  } else if (a && a.kind === 'dep' && a.d < 4) {
+    const d = a.dep, def = DEP_DEFS[d.t]; let ex = '';
+    if (def.turret) ex = `Munición ${d.ammo}/${def.turret.cap} · <span class="key">E</span>Cargar ${ITEMS[def.turret.ammo].name.toLowerCase()}`;
+    else if (d.t === 'chest') ex = d.broken ? '<span class="warn">Roto: repáralo con el martillo</span>' : '<span class="key">E</span>Abrir';
+    else if (d.t === 'beartrap') ex = d.armed ? 'Armado' : '<span class="key">E</span>Armar';
+    else if (d.t === 'garden') ex = !d.planted ? '<span class="key">E</span>Plantar semillas' : d.grow >= 1 ? '<span class="key">E</span>Cosechar' : `Creciendo ${Math.round(d.grow * 100)}%`;
+    else if (d.t === 'collector') ex = `Agua ${Math.floor(d.water)}/10 · <span class="key">E</span>Beber o llenar odre`;
+    else if (d.t === 'bed') ex = '<span class="key">E</span>Reaparecer aquí';
+    else if (STATION_NAMES[d.t]) ex = '<span class="key">E</span>Fabricar';
+    const hs = inv.slots[sel]; if (hs && hs.id === 'hammer' && d.hp < d.maxHp) ex = '<span class="key">Clic</span>Reparar (6 madera, 3 piedra)';
+    h = `<span>${ITEMS[d.t].name}</span><span class="bar"><i style="width:${d.hp / d.maxHp * 100}%"></i></span><span>${ex}${buildMode ? ' · <span class="key">X</span>Recoger' : ''}</span>`;
+  } else if (false) {
     h = `<span>${ITEMS[a.dep.t].name}</span><span><span class="key">E</span>Fabricar${buildMode ? ' · <span class="key">X</span>Recoger' : ''}</span>`;
   } else if (a && a.kind === 'animal' && a.d < 5) {
     const an = a.an;
     if (an.dead) h = `<span>${an.def.name} abatido</span><span class="bar"><i style="width:${an.corpse.hp / 60 * 100}%"></i></span><span>Golpéalo para sacar carne y piel</span>`;
     else h = `<span class="${an.def.temper === 'flee' ? '' : 'warn'}">${an.def.name}${an.def.temper === 'hunt' ? ' (peligroso)' : ''}</span><span class="bar"><i style="width:${an.hp / an.def.hp * 100}%;background:var(--blood)"></i></span>${an.def.temper === 'flee' ? '<span>Acércate sin correr, o usa el arco</span>' : ''}`;
   } else if (a && a.kind === 'bot') {
-    h = `<span class="warn">Saqueador</span><span class="bar"><i style="width:${a.b.hp / 70 * 100}%;background:var(--blood)"></i></span>`;
+    const tip = { archer: 'Dispara de lejos: cúbrete tras un muro', torcher: 'Lanza antorchas: la paja y la madera arden', brute: 'Revienta puertas y te empuja', sapper: 'Lleva pólvora: mátalo lejos de tus muros', boss: 'Su escudo para los golpes de frente: rodéalo' }[a.b.type];
+    h = `<span class="warn">${a.b.def.name}${a.b.carry ? ' (lleva tu botín)' : ''}</span><span class="bar"><i style="width:${Math.max(0, a.b.hp / a.b.maxHp * 100)}%;background:var(--blood)"></i></span>${tip ? '<span>' + tip + '</span>' : ''}`;
   }
   if (!h && rainDrinkable()) h = '<span>Lluvia</span><span><span class="key">E</span>Beber agua de lluvia</span>';
   if (!h && waterAim && !buildMode && !(placement)) {
@@ -2238,7 +3044,7 @@ const SKY = {
   nightTop: new THREE.Color('#02040a'), nightHor: new THREE.Color('#0b1424'),
   greyTop: new THREE.Color('#59626c'), greyHor: new THREE.Color('#8d959c'),
 };
-const SKY_GAIN = .62;
+const SKY_GAIN = .62, BLOOD_TINT = new THREE.Vector3(1.32, .8, .74);
 const cTop = new THREE.Color(), cHor = new THREE.Color(), cTmp = new THREE.Color(), cSun = new THREE.Color(), sunDir = new THREE.Vector3();
 // clima: lo rellena el sistema de clima; 0 = despejado
 const weather = { overcast: 0, rain: 0, storm: 0 };
@@ -2277,6 +3083,9 @@ function updateSky() {
   post.U.uExposure.value = .66 + (1 - day) * .75 + ov * .08;
   post.U.uTint.value.set(1 + dusk * .08, 1 + dusk * .01, 1 - dusk * .1).lerp(new THREE.Vector3(.9, .97, 1.08), 1 - day);
   post.U.uSat.value = 1.2 - ov * .25 - (1 - day) * .4;
+  const bm = siege.blood && siege.active ? 1 - day : 0;
+  if (bm > 0) { post.U.uTint.value.lerp(BLOOD_TINT, bm * .75); post.U.uSat.value += bm * .25; }
+  moon.material.color.setRGB(2.2 + bm * 3, 2.3 - bm * 1.9, 2.5 - bm * 2.2);
   // estrellas, luna y nubes
   stars.material.opacity = (1 - smooth(-.18, .02, elev)) * (1 - ov);
   moon.visible = elev < .05; moon.position.copy(camera.position).addScaledVector(sunDir, -900); moon.material.opacity = (1 - smooth(-.1, .05, elev)) * (1 - ov * .9);
@@ -2293,7 +3102,12 @@ function updateSky() {
   else { scene.fog.near = lerp(60, 15, weather.rain); scene.fog.far = lerp(320, 140, Math.max(ov * .5, weather.rain)); }
   ui.under.hidden = true;
   if (lighthouseBeam) { const nightL = 1 - smooth(-.05, .12, elev); lighthouseBeam.visible = nightL > .02; lighthouseBeam.rotation.y = waterTime.value * .6; POI_MATS.beam.opacity = .13 * nightL; lighthouseLamp.material.color.setRGB(1 + 5 * nightL, .9 + 4 * nightL, .5 + 2 * nightL); }
-  ui.clockN.textContent = isNight() ? 'Noche: lobos y saqueadores' : (hr > 18.5 && hr < 20 ? 'Anochece pronto' : '');
+  let note = '';
+  if (siege.active) note = (siege.blood ? 'LUNA DE SANGRE · ' : 'Asedio · ') + (bots.length + siege.queue.length) + ' enemigos';
+  else if (dayPhase > .55 && dayPhase < .72) { const s = Math.ceil((.72 - dayPhase) * CYCLE); note = (isBloodNight(dayCount) ? 'Luna de sangre en ' : 'Asedio en ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  else if (isBloodNight(dayCount) && !isNight()) note = 'Esta noche: luna de sangre';
+  if (ui.clockN.textContent !== note) ui.clockN.textContent = note;
+  ui.clockN.style.color = siege.active || (dayPhase > .55 && dayPhase < .72) ? 'var(--blood)' : '';
 }
 
 // ---------------------------------------------------------------- clima
@@ -2412,7 +3226,7 @@ function drawCompass() {
   const mark = (tx, tz, col, shape) => { const deg = (Math.atan2(tx - player.pos.x, -(tz - player.pos.z)) * 180 / Math.PI + 360) % 360, x = toX(deg); if (x === null) return; g.fillStyle = col; if (shape === 'tri') { g.beginPath(); g.moveTo(x, 22); g.lineTo(x + 5, 31); g.lineTo(x - 5, 31); g.closePath(); g.fill(); } else g.fillRect(x - 3.5, 24, 7, 7); };
   for (const q of POIS) if (q.found) mark(q.x, q.z, '#e8873e');
   const o = OBJECTIVES[objIndex]; if (o && o.dir) { const od = typeof o.dir === 'function' ? o.dir() : o.dir; if (od) mark(od.x, od.z, '#ffd27a', 'tri'); }
-  const base = pieces.find((pc) => pc.kind === 'foundation'); if (base) mark(base.i * GRID, base.j * GRID, '#ece5d4');
+  const base = pieces.find((pc) => pc.kind === 'foundation'); if (base) mark(base.i * GRID, base.j * GRID, clock - siege.baseHitT < 3 && Math.sin(clock * 12) > 0 ? '#ff4a3a' : '#ece5d4');
   g.fillStyle = '#e8873e'; g.fillRect(W / 2 - 1, 0, 2, 5);
 }
 
@@ -2424,7 +3238,8 @@ function save() {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       v: 1, inv: inv.slots, sel, p: [player.pos.x, player.pos.y, player.pos.z], yaw: player.yaw, hp: player.hp, hunger: player.hunger, thirst: player.thirst, phase: dayPhase, day: dayCount, obj: objIndex, stats, found: POIS.filter((q) => q.found).map((q) => q.name),
       pieces: pieces.map((p) => ({ kind: p.kind, key: p.key, i: p.i, j: p.j, L: p.L, dir: p.dir, tier: p.tier, hp: p.hp, top: p.top, bottom: p.bottom, open: p.open })),
-      deps: deployables.map((d) => ({ t: d.t, x: d.x, y: d.y, z: d.z, r: d.r })),
+      deps: deployables.map((d) => ({ t: d.t, x: d.x, y: d.y, z: d.z, r: d.r, hp: d.hp, ammo: d.ammo, armed: d.armed, planted: d.planted, grow: d.grow, water: d.water, broken: d.broken, slots: d.inv ? d.inv.slots : undefined })),
+      armor: player.armorId, ch: challenges,
     }));
   } catch (e) { /* almacenamiento no disponible */ }
 }
@@ -2434,7 +3249,7 @@ function load() {
   try {
     d.inv.forEach((s, i) => { if (i < inv.slots.length) inv.slots[i] = s && ITEMS[s.id] ? s : null; }); inv.touch();
     sel = d.sel || 0; player.pos.set(d.p[0], d.p[1], d.p[2]); player.yaw = d.yaw; player.hp = d.hp > 0 ? d.hp : 100; if (d.hunger != null) { player.hunger = d.hunger; player.thirst = d.thirst; }
-    dayPhase = d.phase; dayCount = d.day; objIndex = d.obj; Object.assign(stats, d.stats); if (d.found) for (const q of POIS) q.found = d.found.includes(q.name);
+    dayPhase = d.phase; dayCount = d.day; objIndex = d.obj; Object.assign(stats, d.stats); player.armorId = d.armor || null; if (d.ch) challenges = d.ch; if (d.found) for (const q of POIS) q.found = d.found.includes(q.name);
     for (const dp of d.deps) addDeployable(dp);
     const order = { foundation: 0, wall: 1, door: 1, ceiling: 2 };
     d.pieces.sort((a, b) => order[a.kind] - order[b.kind] || (a.L || 0) - (b.L || 0)).forEach((p) => { if (!pieceMap.has(p.key)) { const q = addPiece(p); q.hp = Math.min(p.hp, q.maxHp); } });
@@ -2442,6 +3257,7 @@ function load() {
   } catch (e) { return false; }
 }
 if (load()) { $('#btnPlay').textContent = 'Continuar'; $('#btnNew').hidden = false; }
+$('#records').textContent = recordsText();
 setInterval(() => { if (state === 'playing') save(); }, 15000);
 addEventListener('beforeunload', save);
 
@@ -2452,6 +3268,7 @@ function updatePlayer(dt) {
   const canMove = state === 'playing' && !panelOpen;
   let mx = 0, mz = 0;
   if (canMove) { mx = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0); mz = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0); { if (keys.ArrowLeft) player.yaw += 2 * dt; if (keys.ArrowRight) player.yaw -= 2 * dt; if (keys.ArrowUp) player.pitch = clamp(player.pitch + 1.5 * dt, -1.5, 1.5); if (keys.ArrowDown) player.pitch = clamp(player.pitch - 1.5 * dt, -1.5, 1.5); } }
+  if (player.stun > 0) { player.stun -= dt; mx = 0; mz = 0; }
   const ws = waterSurfaceAt(player.pos.x, player.pos.z), depth = ws.wet ? ws.y - player.pos.y : 0, wFresh = ws.fresh;
   const swimming = player.swimming;
   // agacharse (C en tierra): más lento y sigiloso; no te levantas si hay techo encima
@@ -2524,62 +3341,13 @@ function updatePlayer(dt) {
   // regeneración lenta fuera de combate, solo bien alimentado
   if (clock - player.lastHurt > 12 && player.hp < 100 && player.hunger > 35 && player.thirst > 35) player.hp = Math.min(100, player.hp + dt * .6);
 }
-function updateBots(dt) {
-  const night = isNight();
-  botTimer -= dt;
-  const maxBots = night ? 4 : 1;
-  if (botTimer <= 0) {
-    botTimer = night ? 14 : 50;
-    if (bots.length < maxBots && clock > 75) {
-      for (let t = 0; t < 20; t++) {
-        const a = Math.random() * 6.283, r = 45 + Math.random() * 25, x = player.pos.x + Math.cos(a) * r, z = player.pos.z + Math.sin(a) * r;
-        if (terrainH(x, z) > 1.2 && !isWet(x, z) && Math.hypot(x, z) < HALF * .9 && !pieces.some((p) => Math.hypot(p.i * GRID - x, p.j * GRID - z) < 12)) { spawnBot(x, z); break; }
-      }
-    }
-  }
-  for (const b of bots.slice()) {
-    const dx = player.pos.x - b.pos.x, dz = player.pos.z - b.pos.z, d = Math.hypot(dx, dz);
-    if (d > 150) { killBot(b, false); continue; }
-    let wx = 0, wz = 0, sp = 0;
-    const aggro = night ? 34 : 24;
-    if (state === 'playing' && player.hp > 0 && (d < aggro || b.state === 'chase') && d < 60) {
-      b.state = 'chase'; sp = 4.3; wx = dx / d; wz = dz / d;
-      if (d < 1.9 && Math.abs(player.pos.y - b.pos.y) < 1.6) { sp = 0; if ((b.atk -= dt) <= 0) { b.atk = 1.25; b.swing = 0; hurtPlayer(10, 'raider'); } }
-    } else {
-      b.state = 'wander';
-      const wd = Math.hypot(b.wx - b.pos.x, b.wz - b.pos.z);
-      if (wd < 1.5 || (b.wt -= dt) <= 0) { b.wt = 6 + Math.random() * 6; const a = Math.random() * 6.283, r = 6 + Math.random() * 16; const nx = b.pos.x + Math.cos(a) * r, nz = b.pos.z + Math.sin(a) * r; if (terrainH(nx, nz) > 1) { b.wx = nx; b.wz = nz; } }
-      wx = (b.wx - b.pos.x) / (wd || 1); wz = (b.wz - b.pos.z) / (wd || 1); sp = 1.6;
-    }
-    if (isWet(b.pos.x + wx * 2, b.pos.z + wz * 2)) { sp = 0; b.wx = b.pos.x; b.wz = b.pos.z; }
-    const px = b.pos.x, pz = b.pos.z;
-    // empuje entre personajes
-    const sx = b.pos.x - player.pos.x, sz = b.pos.z - player.pos.z, sd = Math.hypot(sx, sz);
-    if (sd < .8 && sd > 1e-3) { b.pos.x += sx / sd * (.8 - sd); b.pos.z += sz / sd * (.8 - sd); }
-    moveEntity(b, wx * sp, wz * sp, dt);
-    const moved = Math.hypot(b.pos.x - px, b.pos.z - pz);
-    if (sp > 2 && moved < sp * dt * .3) b.stuck += dt; else b.stuck = Math.max(0, b.stuck - dt);
-    if (b.stuck > .7) {
-      let best = null, bd = 1.6;
-      for (const c of colliders) { if (!c.piece) continue; if (c.maxY < b.pos.y + .3 || c.minY > b.pos.y + 1.6) continue; const cx = clamp(b.pos.x, c.minX, c.maxX), cz = clamp(b.pos.z, c.minZ, c.maxZ), dd = Math.hypot(b.pos.x - cx, b.pos.z - cz); if (dd < bd) { bd = dd; best = c.piece; } }
-      if (best && (b.atk -= dt) <= 0) {
-        b.atk = 1.2; b.swing = 0; const dmg = 14 * (1 - BTIERS[best.tier].res); best.hp -= dmg;
-        if (Math.hypot(b.pos.x - player.pos.x, b.pos.z - player.pos.z) < 30) { (best.tier >= 2 ? sfx.stone : sfx.wood)(); burst(b.pos.clone().add(new THREE.Vector3(wx, 1.2, wz)), best.tier >= 2 ? 'stone' : 'wood', 4); }
-        if (best.hp <= 0) { toast(`¡Han destruido tu ${PIECES[best.kind].name.toLowerCase()} de ${BTIERS[best.tier].name.toLowerCase()}!`, 'bad'); destroyPiece(best); }
-      }
-    }
-    b.walk += dt * (moved / dt > .5 ? 1 : 0);
-    if (sp > 0) b.yaw = Math.atan2(wx, wz);
-    b.g.position.copy(b.pos); b.g.rotation.y = b.yaw;
-    const sw = Math.sin(b.walk * 9) * Math.min(1, moved / dt / 3) * .6;
-    b.legL.rotation.x = sw; b.legR.rotation.x = -sw;
-    b.swing = Math.min(1, b.swing + dt * 3); b.arm.rotation.x = -Math.sin(b.swing * Math.PI) * 1.6;
-    b.flash = Math.max(0, b.flash - dt);
-    b.g.children[2].material = b.flash > 0 ? partMats.blood : BOT_MATS.body;
-  }
-}
 const DEATH_TXT = {
-  raider: 'Los saqueadores te han dejado fuera de combate.',
+  raider: 'Los Errantes te han dejado fuera de combate.',
+  arrow: 'Un arquero te ha acribillado. Cúbrete tras los muros: sin línea de visión no pueden disparar.',
+  explosion: 'Una explosión te ha alcanzado. Mata a los zapadores antes de que lleguen a ti o a tus muros.',
+  boss: 'El Señor de la Guerra te ha aplastado. Su escudo para los golpes de frente: rodéalo o usa bombas.',
+  fire: 'Te has quemado. Apaga los fuegos con un odre lleno y construye en piedra.',
+  trap: 'Tus propias trampas te han herido.',
   wolf: 'Los lobos te han dado caza. De noche salen en manada: refúgiate tras una puerta.',
   boar: 'El jabalí te ha embestido hasta tumbarte. Mejor no provocarlo sin un arma.',
   hunger: 'Te has desmayado de hambre. Recoge bayas y manzanas o caza y asa carne.',
@@ -2590,10 +3358,11 @@ const DEATH_TXT = {
 };
 function hurtPlayer(dmg, cause, quiet) {
   if (player.hp <= 0) return;
+  if (player.armorId && ['raider', 'wolf', 'boar', 'arrow', 'explosion', 'boss', 'trap', 'fire'].includes(cause)) dmg *= 1 - ITEMS[player.armorId].armor;
   player.hp -= dmg; player.lastHurt = clock; if (!quiet || player.hp < 25) sfx.hurt(); if (!quiet) camShake = Math.max(camShake, .2);
   ui.hurt.style.boxShadow = `inset 0 0 160px rgba(200,30,20,${quiet ? .3 : .55})`; setTimeout(() => { ui.hurt.style.boxShadow = 'inset 0 0 160px rgba(200,30,20,0)'; }, 160);
   if (player.hp <= 0) {
-    $('#deathTxt').textContent = (DEATH_TXT[cause] || DEATH_TXT.raider) + ' Conservas la mochila, pero vuelves a la playa.';
+    $('#deathTxt').textContent = (DEATH_TXT[cause] || DEATH_TXT.raider) + (respawnBed() ? ' Conservas la mochila y despertarás en tu cama.' : ' Conservas la mochila, pero vuelves a la playa.');
     player.hp = 0; state = 'dead'; mouseL = false; if (panelOpen) togglePanel();
     if (locked) document.exitPointerLock(); $('#death').hidden = false; save();
   }
@@ -2609,7 +3378,7 @@ function updateArrows(dt) {
       a.vel.y -= 9.8 * dt * (under ? .15 : .55); const step = a.vel.clone().multiplyScalar(dt); const np = a.pos.clone().add(step);
       let hit = false;
       const seg = np.clone().sub(a.pos), sl = seg.lengthSq() || 1e-6;
-      for (const b of bots) { const c = b.pos.clone(); c.y += 1.1; const t = clamp(c.clone().sub(a.pos).dot(seg) / sl, 0, 1); if (a.pos.clone().addScaledVector(seg, t).distanceTo(c) < .55) { hurtBot(b, a.dmg, c); hit = true; break; } }
+      for (const b of bots) { const c = b.pos.clone(); c.y += 1.1; const t = clamp(c.clone().sub(a.pos).dot(seg) / sl, 0, 1); if (a.pos.clone().addScaledVector(seg, t).distanceTo(c) < .55) { hurtBot(b, a.dmg, c, 'arrow', a.pos); hit = true; break; } }
       if (!hit) for (const an of animals) { if (an.dead) continue; const c = an.pos.clone(); c.y += an.def.height * .5; const t = clamp(c.clone().sub(a.pos).dot(seg) / sl, 0, 1); if (a.pos.clone().addScaledVector(seg, t).distanceTo(c) < an.def.radius + .3) { hurtAnimal(an, a.dmg, c); hit = true; break; } }
       if (under && a.vel.lengthSq() < .3) { a.stuck = true; a.life = Math.min(a.life, 4); }
       if (hit) { scene.remove(a.m); arrows.splice(arrows.indexOf(a), 1); continue; }
@@ -2656,10 +3425,10 @@ function updateVM(dt) {
 function updateParts(dt) {
   for (const q of parts) {
     if (q.life <= 0) continue;
-    q.life -= dt; q.v.y -= 16 * dt; q.m.position.addScaledVector(q.v, dt); q.m.rotation.x += q.av * dt; q.m.rotation.y += q.av * .7 * dt;
+    q.life -= dt; if (q.float) { q.v.y += 2 * dt; q.m.scale.multiplyScalar(1 - dt * 1.8); } else q.v.y -= 16 * dt; q.m.position.addScaledVector(q.v, dt); q.m.rotation.x += q.av * dt; q.m.rotation.y += q.av * .7 * dt;
     // rebote con pérdida de energía y rozamiento contra el suelo
     const g = terrainH(q.m.position.x, q.m.position.z) + .04 * q.m.scale.x;
-    if (q.m.position.y < g) { q.m.position.y = g; if (q.v.y < 0) q.v.y *= -.32; q.v.x *= .55; q.v.z *= .55; q.av *= .5; }
+    if (!q.float && q.m.position.y < g) { q.m.position.y = g; if (q.v.y < 0) q.v.y *= -.32; q.v.x *= .55; q.v.z *= .55; q.av *= .5; }
     if (q.life <= 0) q.m.visible = false;
   }
 }
@@ -2669,7 +3438,7 @@ function tick(dt, now) {
   clock += dt;
   dayPhase += dt / CYCLE; if (dayPhase >= 1) { dayPhase -= 1; dayCount++; }
   updateWeather(dt); updateAmbient(dt);
-  updatePlayer(dt); updateBots(dt); updateAnimals(dt); updateArrows(dt); updateQueue(dt); updateNodes(dt);
+  updatePlayer(dt); updateBots(dt); updateAnimals(dt); updateArrows(dt); updateProjs(dt); updateQueue(dt); updateNodes(dt);
   aim = computeAim(); waterAim = computeWaterAim();
   if (!panelOpen) {
     updateGhost();
@@ -2684,7 +3453,9 @@ function tick(dt, now) {
   ui.airW.hidden = player.air >= 1; ui.air.style.width = player.air * 100 + '%'; ui.airW.classList.toggle('low', player.air < .25);
   const fl = 1.3 + Math.sin(now * .012) * .3 + Math.random() * .2;
   DEP_MATS.fire.emissiveIntensity = fl;
-  for (const d of deployables) { if (d.light) d.light.intensity = 1.1 + fl * .35; if (d.t === 'campfire' && d.fire) d.fire.scale.y = .85 + Math.random() * .3; }
+  for (const d of deployables) if (d.fire && d.t !== 'furnace') d.fire.scale.y = .85 + Math.random() * .3;
+  updateLights(fl); updateDeployables(dt); updateFire(dt); updateBanners(dt);
+  $('#armorInfo').textContent = player.armorId ? ITEMS[player.armorId].name + ' · −' + Math.round(ITEMS[player.armorId].armor * 100) + '% de daño' : '';
 }
 function frame(now) {
   requestAnimationFrame(frame);
@@ -2738,7 +3509,8 @@ applyQuality(qualityName);
 updateObjective();
 requestAnimationFrame(frame);
 // gancho de pruebas: avanza la simulación sin depender de los FPS
-window.__isla = { player, inv, nodes, pieces, bots, animals, spawnAnimal, LAKES, waterSurfaceAt, stats, giveItem, spawnBot, terrainH, spawn: SPAWN, scene, refreshEnv, renderer, POIS, destroyPiece, post, weather, setWeather(w) { wxState = w; wxTimer = 999; }, ctlData, N, CELL, HALF, camera, pieceRoot, get state() { return state; }, get aim() { return aim; }, get placement() { return placement; }, get waterAim() { return waterAim; },
+window.__isla = { addPiece, GRID, siege, startSiege, endSiege, deployables, addDeployable, projs, baseTarget, ETYPES, hurtBot, explode, challenges: () => challenges, get dayCount() { return dayCount; }, get dayPhase() { return dayPhase; }, bots,
+  player, inv, nodes, pieces, animals, spawnAnimal, LAKES, waterSurfaceAt, stats, giveItem, spawnBot, terrainH, spawn: SPAWN, scene, refreshEnv, renderer, POIS, destroyPiece, post, weather, setWeather(w) { wxState = w; wxTimer = 999; }, ctlData, N, CELL, HALF, camera, pieceRoot, get state() { return state; }, get aim() { return aim; }, get placement() { return placement; }, get waterAim() { return waterAim; },
   sim(sec, hold) { const n = Math.round(sec / .05); for (let k = 0; k < n; k++) { if (hold) mouseL = true; if (hold === 'click' && k === 0) clickQueued = true; waterTime.value += .05; scene.updateMatrixWorld(); tick(.05, performance.now()); } if (hold) mouseL = false; },
   setPhase(p) { dayPhase = p; } };
 })();
