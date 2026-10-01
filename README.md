@@ -17,6 +17,13 @@ Survival de mundo abierto para navegador, pensado para CrazyGames. Por ahora el 
 - Árboles con copas compuestas que se mueven con el viento (pinos, robles, abedules y manzanos) y rocas con forma natural.
 - Calidad gráfica Baja/Media/Alta/Ultra, con ajuste automático si los FPS caen.
 
+### Modelos de animales, enemigos y armas
+- Animales articulados (ciervo con astas ramificadas, jabalí con colmillos y crin, lobo con mandíbula): piel con textura de pelo, patas con rodilla, cabeza y cola animadas, y el ciervo agacha la cabeza a pastar.
+- Los Errantes son guerreros vikingos: barbas trenzadas con aros, cascos cónicos, con cuernos o de jarl, mantos de piel, cota de malla, escudos redondos pintados, carcaj, gafas de zapador y un estandarte para el Señor de la Guerra. Al caer se desploman y se hunden en el suelo.
+- Armas con mejor construcción, compartidas entre tu mano y los enemigos: hachas de piedra y de hierro con el cabezal atado con cuerda, picos, martillo, lanza con punta de hoja, espada con guarda y pomo, hacha danesa y antorcha.
+- Manos y antebrazos en primera persona, con animaciones propias: tajo, estocada, golpe, uso de comida y retroceso de la ballesta.
+- **Arco con tensado:** mantén el clic para tensar la cuerda (con la flecha encajada, la rama que se curva y un ligero zoom), y suelta para disparar. Cuanto más tensas, más lejos llega la flecha y más daño hace; un toque corto no gasta flecha.
+
 ### Física y sistemas
 - Energía para correr y saltar, agacharse con sigilo, daño por caída, resbalones en pendientes y sacudidas de cámara.
 - Árboles que caen al talarlos, rocas que estallan en trozos que rebotan y construcciones que se derrumban.
