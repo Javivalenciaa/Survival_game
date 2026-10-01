@@ -1,4 +1,4 @@
-# Isla de Hierro
+# Iron Island (Isla de Hierro)
 
 Survival de mundo abierto para navegador, pensado para CrazyGames. Por ahora el combate es contra los Errantes, enemigos controlados por el juego que asedian tu base cada noche.
 
@@ -54,3 +54,11 @@ Survival de mundo abierto para navegador, pensado para CrazyGames. Por ahora el 
 
 - Arquitectura, optimización y roadmap: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md)
 - Scripts de C#: copia `Assets/_Project` dentro de un proyecto de Unity 6 (URP).
+
+## CrazyGames
+
+- Paquete listo para subir: [`crazygames/iron-island-crazygames.zip`](crazygames/iron-island-crazygames.zip) (un único `index.html` con Three.js incluido; no carga nada externo salvo el SDK de CrazyGames).
+- Integración del SDK v3: `init`, `loadingStart/Stop`, `gameplayStart/Stop` (se llama al jugar y se para en menús, pausa, mochila, muerte y anuncios) y anuncio `midgame` al reaparecer tras morir (el audio se silencia durante el anuncio y el juego sigue si no hay anuncio disponible).
+- Idioma: inglés por defecto; se puede cambiar a español en el menú principal y en la pausa (Esc). Se recuerda la elección.
+- Controles táctiles (joystick, mirar arrastrando, golpear, saltar, usar, agacharse, mochila, construir, mapa y pausa) además de teclado y ratón.
+- Cómo regenerar el zip: `python3 -c "import zipfile;zipfile.ZipFile('crazygames/iron-island-crazygames.zip','w',zipfile.ZIP_DEFLATED).write('index.html','index.html')"`.
