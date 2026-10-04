@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
-<style>[hidden]{display:none!important}</style>
+<style>[hidden]{display:none!important}#pause .card{max-height:94vh;overflow-y:auto}
+</style>
 </head>
 <body>
 <title>Iron Island</title>
@@ -307,7 +308,7 @@ body.touch #bottom{transform:scale(.68);transform-origin:bottom center}
   <div class="card glass">
     <h2 class="brand" style="font-size:56px">Pausa</h2>
     <p class="lede" id="pauseTxt">La partida se guarda sola en este navegador.</p>
-    <div class="ctas"><button class="btn" id="btnResume" type="button">Continuar</button><button class="btn ghost" id="btnReset" type="button">Nueva partida</button></div>
+    <div class="ctas"><button class="btn" id="btnResume" type="button">Continuar</button><button class="btn ghost" id="btnMenuBack" type="button">Salir al menú</button><button class="btn ghost" id="btnReset" type="button">Nueva partida</button></div>
     <p class="records" id="records2"></p>
     <div class="qrow"><span>Idioma</span><div class="qb"><button type="button" class="chipbtn" data-lang="en">English</button><button type="button" class="chipbtn" data-lang="es">Español</button></div></div>
     <div class="qrow"><span>Calidad gráfica</span><div class="qb"><button type="button" class="chipbtn" data-q="baja">Baja</button><button type="button" class="chipbtn" data-q="media">Media</button><button type="button" class="chipbtn" data-q="alta">Alta</button><button type="button" class="chipbtn" data-q="ultra">Ultra</button></div></div>
@@ -367,7 +368,7 @@ const NAMES = {
 const TIERS_EN = { paja: 'thatch', madera: 'wooden', piedra: 'stone', metal: 'metal' };
 const ES_EN = Object.assign({}, NAMES, {
   // menús y HUD
-  'Isla de': 'Island of', 'Hierro': 'Iron', 'Jugar': 'Play', 'Continuar': 'Continue', 'Nueva partida': 'New game', 'Pausa': 'Pause', 'Calidad gráfica': 'Graphics quality', 'Idioma': 'Language',
+  'Isla de': 'Island of', 'Hierro': 'Iron', 'Jugar': 'Play', 'Continuar': 'Continue', 'Nueva partida': 'New game', 'Salir al menú': 'Back to menu', 'Cae la noche': 'Night falls', 'Los Errantes atacarán pronto: refúgiate y prepara defensas.': 'The Wanderers will attack soon: take cover and prepare your defenses.', 'Pausa': 'Pause', 'Calidad gráfica': 'Graphics quality', 'Idioma': 'Language',
   'Baja': 'Low', 'Media': 'Medium', 'Alta': 'High', 'Ultra': 'Ultra', 'Reaparecer': 'Respawn', 'Has caído': 'You died', 'Objetivo': 'Objective', 'Retos de hoy': "Today's challenges", 'Mochila': 'Backpack', 'Fabricación': 'Crafting',
   'Cerrar [Tab]': 'Close [Tab]', 'Hambre': 'Hunger', 'Sed': 'Thirst', 'Energía': 'Energy', 'Aire': 'Air', 'Mapa': 'Map', 'Tú': 'You', 'Lugar descubierto': 'Discovered place', 'Tu base': 'Your base', 'M para cerrar': 'Press M to close',
   'Moverse': 'Move', 'Mirar': 'Look', 'Ratón': 'Mouse', 'Clic izq.': 'Left click', 'Golpear / usar': 'Hit / use', 'Mantén clic y suelta': 'Hold click, release', 'Mayús': 'Shift', 'Correr': 'Sprint', 'Espacio': 'Space', 'Saltar': 'Jump',
@@ -2768,7 +2769,8 @@ function endSiege() {
 }
 function updateSiege(dt) {
   const night = isNight();
-  if (night && !siege.active && stats.siegeDone !== dayCount && clock > 20) startSiege(dayCount);
+  if (night) { siege.nightT = (siege.nightT || 0) + dt; if (siege.nightT > 5 && siege.warnedDay !== dayCount) { siege.warnedDay = dayCount; showBanner('Cae la noche', 'Los Errantes atacarán pronto: refúgiate y prepara defensas.', false); } } else siege.nightT = 0;
+  if (night && !siege.active && stats.siegeDone !== dayCount && clock > 20 && siege.nightT > (dayCount === 1 ? 90 : 30)) startSiege(dayCount);
   if (!night && siege.active) endSiege();
   if (!siege.active || !siege.queue.length || (siege.spawnT -= dt) > 0) return;
   siege.spawnT = 2.5 + Math.random() * 2.5;
@@ -3391,6 +3393,11 @@ function startGame() {
 function pauseGame() { if (state !== 'playing') return; state = 'paused'; mouseL = false; $('#pause').hidden = false; $('#resetConfirm').hidden = true; $('#records2').textContent = recordsText(); save(); }
 $('#btnPlay').addEventListener('click', startGame);
 $('#btnResume').addEventListener('click', startGame);
+// salir de la partida: sin conexión vuelve al menú al instante; en línea cierra la conexión y recarga directo al menú (estado limpio)
+$('#btnMenuBack').addEventListener('click', () => {
+  try { save(); } catch (e) { /* sin guardado */ } try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) { /* sin bloqueo */ }
+  $('#pause').hidden = true; $('#hud').hidden = true; $('#menu').hidden = false; state = 'menu';
+});
 let resetArmed = false;
 function resetGame() { if (!resetArmed) { resetArmed = true; $('#resetConfirm').hidden = false; return; } try { localStorage.removeItem(SAVE_KEY); } catch (e) {} location.reload(); }
 $('#btnReset').addEventListener('click', resetGame);
